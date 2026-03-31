@@ -44,37 +44,37 @@ const AgenticReasoning: React.FC = () => {
             <h3 className="text-2xl font-bold font-display tracking-tight leading-none mb-2">Agentic Reasoning Engine</h3>
             <div className="flex items-center gap-2">
               <span className="flex w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest leading-none">Status: Live Inference (Gemini 1.5 Pro)</p>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none">Status: Live Inference (Gemini 1.5 Pro)</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-8">
           {reasoningSteps.map((step, i) => (
-            <div key={i} className={`flex gap-8 relative ${step.status === 'pending' ? 'opacity-30' : 'opacity-100'}`}>
+            <div key={i} className={`flex gap-8 relative ${step.status === 'pending' ? 'opacity-50' : 'opacity-100'}`}>
               {i !== reasoningSteps.length - 1 && (
                 <div className="absolute left-4 top-10 bottom-[-20px] w-0.5 bg-slate-800" />
               )}
 
               <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-500 ${step.status === 'complete' ? 'bg-brand-600 border-brand-600' :
-                  step.status === 'active' ? 'bg-slate-900 border-brand-500 animate-pulse' :
-                    'bg-slate-900 border-slate-700'
+                step.status === 'active' ? 'bg-slate-900 border-brand-500 animate-pulse' :
+                  'bg-slate-900 border-slate-700'
                 }`}>
                 {step.status === 'complete' ? '✓' : step.step}
               </div>
 
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className={`font-bold transition-colors duration-500 ${step.status === 'active' ? 'text-brand-400' : 'text-white'}`}>
+                  <h4 className={`font-bold transition-colors duration-500 ${step.status === 'active' ? 'text-brand-400' : 'text-slate-600'}`}>
                     {step.title}
                   </h4>
                   {step.confidence > 0 && (
-                    <span className="text-[10px] font-bold bg-white/5 border border-white/10 px-2 py-0.5 rounded-full text-slate-600 tracking-wider font-mono">
+                    <span className="text-[10px] font-bold bg-white/5 border border-white/10 px-2 py-0.5 rounded-full text-slate-400 tracking-wider font-mono">
                       CONF_LVL: {step.confidence}%
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-slate-600 font-medium leading-relaxed leading-relaxed">
+                <p className="text-sm text-slate-400 font-medium leading-relaxed leading-relaxed">
                   {step.desc}
                 </p>
               </div>
@@ -87,7 +87,7 @@ const AgenticReasoning: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/20 flex items-center justify-center">
               <span className="material-symbols-rounded text-brand-400">auto_awesome</span>
             </div>
-            <p className="text-sm font-bold text-slate-600">Proceed with auto-generated Project Task?</p>
+            <p className="text-sm font-bold text-slate-400">Proceed with auto-generated Project Task?</p>
           </div>
           <button className="bg-white text-slate-950 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-brand-500 hover:text-white transition-all">
             Accept & Scale
