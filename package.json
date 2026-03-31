@@ -10,7 +10,7 @@
   "bugs": {
     "url": "https://github.com/rolanbacalla-glitch/lyssna/issues"
   },
-  "homepage": "https://rolanbacalla-glitch.github.io/lyssna/",
+  "homepage": "https://lyssna-seven.vercel.app/",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
