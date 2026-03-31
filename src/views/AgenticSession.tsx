@@ -142,7 +142,7 @@ const AgenticSession: React.FC = () => {
             <div className="space-y-8">
               <div>
                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-4">Live Recommendation</p>
-                <div className="p-6 rounded-[24px] bg-brand-500/10 border border-brand-500/20 text-brand-100 text-sm font-medium leading-relaxed shadow-inner">
+                <div className="p-6 rounded-[24px] bg-brand-100/50 border border-brand-200 text-brand-900 text-sm font-semibold leading-relaxed shadow-sm">
                   {suggestedQuestion || "Analysing participant's micro-hesitation..."}
                 </div>
               </div>
