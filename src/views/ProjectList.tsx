@@ -43,7 +43,10 @@ const ProjectList: React.FC = () => {
                   <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter mb-0.5">{p.status}</p>
                   <p className="text-sm font-bold text-slate-800">{p.name}</p>
                   <div className="mt-2 h-1 w-24 bg-slate-100 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full bg-${color}-500`} style={{ width: `${p.nps}%` }} />
+                    <div 
+                      className={`h-full rounded-full bg-${color}-500 transition-all duration-500`} 
+                      style={{ '--p-width': `${p.nps}%`, width: 'var(--p-width)' } as React.CSSProperties} 
+                    />
                   </div>
                 </div>
               </div>
@@ -64,15 +67,16 @@ const ProjectList: React.FC = () => {
             {mockParticipants.slice(0, 3).map((p, i) => (
               <div key={p.id} className="group cursor-pointer">
                 <div className="relative aspect-[4/3] rounded-[32px] overflow-hidden mb-5 shadow-lg border border-slate-100">
-                  <img 
-                    src={`https://images.unsplash.com/photo-${[
-                      '1573164713714-d95e436ab8d6',
-                      '1551434678-e076c223a692',
-                      '1581091226825-a6a2a5aee158'
-                    ][i]}?auto=format&fit=crop&q=80&w=400`} 
-                    alt="Session Thumbnail"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                  />
+                    <img 
+                      src={`https://images.unsplash.com/photo-${[
+                        '1573164713714-d95e436ab8d6',
+                        '1551434678-e076c223a692',
+                        '1581091226825-a6a2a5aee158'
+                      ][i]}?auto=format&fit=crop&q=80&w=400`} 
+                      alt={`Session recording for participant ${mockParticipants[i]?.name || 'User'}`}
+                      title="View Session Highlights"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                    />
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
                   <div className="absolute top-4 left-4 flex gap-2">
                     <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase tracking-widest border border-white/20">Live</span>
@@ -149,7 +153,16 @@ const ProjectList: React.FC = () => {
           <div className="relative w-40 h-40 mx-auto mb-8">
             <svg className="w-full h-full transform -rotate-90">
               <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-100" />
-              <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray="440" strokeDashoffset={440 - (440 * 74) / 100} className="text-brand-600" style={{ strokeLinecap: 'round' }} />
+              <circle 
+                cx="80" cy="80" r="70" 
+                stroke="currentColor" strokeWidth="12" fill="transparent" 
+                strokeDasharray="440" 
+                className="text-brand-600 transition-all duration-1000" 
+                style={{ 
+                  strokeDashoffset: (440 - (440 * 74) / 100),
+                  strokeLinecap: 'round'
+                } as React.CSSProperties} 
+              />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden translate-y-1">
@@ -167,7 +180,10 @@ const ProjectList: React.FC = () => {
           <div className="flex justify-between items-end gap-3 h-32">
             {[40, 60, 35, 80, 50, 65, 45].map((h, i) => (
               <div key={i} className="flex-1 group">
-                <div className={`w-full rounded-t-lg transition-all duration-500 group-hover:bg-brand-600 ${i === 3 ? 'bg-brand-600' : 'bg-slate-100 opacity-80'}`} style={{ height: `${h}%` }} />
+                <div 
+                  className={`w-full rounded-t-lg transition-all duration-500 group-hover:bg-brand-600 ${i === 3 ? 'bg-brand-600' : 'bg-slate-100 opacity-80'}`} 
+                  style={{ '--height': `${h}%`, height: 'var(--height)' } as React.CSSProperties} 
+                />
                 <p className="text-[10px] font-bold text-slate-600 mt-3">{['1-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31'][i]}</p>
               </div>
             ))}

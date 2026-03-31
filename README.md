@@ -1,8 +1,8 @@
-# 🚀 Lynda-Plus: Agentic User Research Platform
+# 🚀 LyndaPlus: Agentic User Research Platform
 
 **"Meet Your New Agentic Research Collaborator"**
 
-Lynda-Plus is a high-end, AI-powered user research platform designed to deliver deep, actionable insights with unprecedented speed. Built on the "Airy Intelligence" design system, it leverages Gemini 1.5 Pro and Gemini 3.1 Flash to automate the most complex parts of the research lifecycle.
+LyndaPlus is a high-end, AI-powered user research platform designed to deliver deep, actionable insights with unprecedented speed. Built on the "Airy Intelligence" design system, it leverages Gemini 1.5 Pro and Gemini 3.1 Flash to automate the most complex parts of the research lifecycle.
 
 ## ✨ Key Features
 
@@ -61,7 +61,7 @@ Lyssna-Plus follows a strict design system defined in `design.md`, focusing on:
 
 - **Visual Clarity**: Modern light-theme with premium Slate/Indigo hues.
 - **Interactivity**: Glassmorphism, smooth animations, and real-time AI feedback loops.
-- **Responsive Excellence**: Fully optimized for desktop researcher workflows.
+- **Responsive Excellence**: Fully optimised for desktop researcher workflows.
 
 ---
 

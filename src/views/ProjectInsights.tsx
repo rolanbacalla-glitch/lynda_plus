@@ -9,7 +9,7 @@ const ProjectInsights: React.FC = () => {
   return (
     <div className="view-container animate-fade-in px-12 py-12">
       <div className="header-section mb-14">
-        <h1 className="text-4xl font-bold font-display text-slate-900 tracking-tight mb-2 italic">Automated Insights</h1>
+        <h1 className="text-4xl font-bold font-display text-slate-900 tracking-tight mb-2">Automated Insights</h1>
         <p className="text-xl text-slate-600 font-medium tracking-tight">Agentic Multimodal Synthesis for Project #{projectId}</p>
       </div>
 
@@ -17,7 +17,7 @@ const ProjectInsights: React.FC = () => {
         {/* Main Insights Timeline */}
         <div className="lg:col-span-2 space-y-10">
           <AgenticReasoning />
-          
+
           <div className="card glass p-10 md:p-12 relative overflow-hidden bg-white border border-slate-100 shadow-premium">
             <h3 className="text-2xl font-bold mb-8 text-slate-900 flex items-center gap-3 font-display tracking-tight">
               <span className="p-3 bg-brand-50 rounded-2xl animate-pulse">✨</span>
@@ -27,7 +27,7 @@ const ProjectInsights: React.FC = () => {
               {mockInsights.map((insight) => (
                 <div key={insight.id} className="p-6 rounded-[32px] border border-slate-50 bg-slate-50/30 hover:bg-white hover:shadow-xl transition-all duration-500 group/item relative overflow-hidden">
                   <div className="flex justify-between items-start mb-3">
-                    <h4 className="text-xl font-bold text-slate-900 tracking-tight group-hover/item:text-brand-600 transition-colors uppercase italic">{insight.title}</h4>
+                    <h4 className="text-xl font-bold text-slate-900 tracking-tight group-hover/item:text-brand-600 transition-colors uppercase">{insight.title}</h4>
                     <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] shadow-sm ${insight.type === 'Critical' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
                       {insight.type}
                     </span>
@@ -35,8 +35,8 @@ const ProjectInsights: React.FC = () => {
                   <p className="text-[15px] text-slate-500 font-medium leading-relaxed mb-6 leading-relaxed">{insight.description}</p>
                   <div className="flex items-center justify-between text-[11px] text-slate-600 font-bold uppercase tracking-widest">
                     <div className="flex items-center gap-2">
-                       <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
-                       <span>Inference Engine: Gemini 1.5 Pro</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                      <span>Inference Engine: Gemini 1.5 Pro</span>
                     </div>
                     <span>{insight.timestamp}</span>
                   </div>
@@ -46,14 +46,14 @@ const ProjectInsights: React.FC = () => {
           </div>
 
           <div className="card glass p-10 md:p-12 border border-slate-100 shadow-premium bg-white">
-            <h3 className="text-2xl font-bold mb-8 text-slate-900 font-display tracking-tight italic uppercase">Video-to-Insight Synthesis</h3>
+            <h3 className="text-2xl font-bold mb-8 text-slate-900 font-display tracking-tight uppercase">Video-to-Insight Synthesis</h3>
             <div className="aspect-video rounded-[40px] bg-slate-900 flex items-center justify-center relative shadow-2xl group cursor-pointer overflow-hidden border-8 border-white">
               <div className="text-center z-10 translate-y-4 group-hover:translate-y-0 transition-all duration-700">
                 <div className="w-20 h-20 rounded-full bg-brand-600 flex items-center justify-center mx-auto mb-6 shadow-brand-500/30 group-hover:scale-110 active:scale-95 transition-all">
                   <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[22px] border-l-white border-b-[12px] border-b-transparent ml-2"></div>
                 </div>
-                <p className="text-white font-bold text-lg tracking-tight uppercase italic">Play Insight Highlight Reel</p>
-                <p className="text-slate-600 text-xs font-bold tracking-widest uppercase mt-2">AI-Synthesized from 12 hrs footage</p>
+                <p className="text-white font-bold text-lg tracking-tight uppercase">Play Insight Highlight Reel</p>
+                <p className="text-slate-400 text-xs font-bold tracking-widest uppercase mt-2">AI-Synthesised from 12 hrs footage</p>
               </div>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(79,70,229,0.2)_0%,transparent_80%)] opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 to-transparent"></div>
@@ -64,7 +64,7 @@ const ProjectInsights: React.FC = () => {
         {/* Sidebar Analytics */}
         <div className="space-y-10">
           <div className="card glass p-10 md:p-12 border border-slate-100 shadow-premium bg-white">
-            <h3 className="text-xl font-bold mb-8 text-slate-900 font-display tracking-tight underline decoration-4 decoration-brand-200 underline-offset-8 italic uppercase">Thematic Analysis</h3>
+            <h3 className="text-xl font-bold mb-8 text-slate-900 font-display tracking-tight underline decoration-4 decoration-brand-200 underline-offset-8  uppercase">Thematic Analysis</h3>
             <div className="space-y-6">
               {mockThemes.map((theme) => (
                 <div key={theme.name} className="space-y-2 group/theme cursor-default">
@@ -73,9 +73,9 @@ const ProjectInsights: React.FC = () => {
                     <span className="text-slate-600">{theme.count} mentions</span>
                   </div>
                   <div className="h-4 w-full bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 p-0.5 shadow-inner">
-                    <div 
+                    <div
                       className={`h-full rounded-2xl shadow-sm transition-all duration-1000 ${theme.sentiment === 'Positive' ? 'bg-emerald-400' : theme.sentiment === 'Negative' ? 'bg-rose-400' : 'bg-slate-300'}`}
-                      style={{ width: `${(theme.count / 15) * 100}%` }}
+                      style={{ '--bar-width': `${(theme.count / 15) * 100}%`, width: 'var(--bar-width)' } as React.CSSProperties}
                     ></div>
                   </div>
                 </div>
@@ -89,7 +89,7 @@ const ProjectInsights: React.FC = () => {
             <h3 className="text-xl font-bold mb-3 font-display italic tracking-tight uppercase">Multimodal Correlation</h3>
             <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6 leading-relaxed">System correlated verbal frustration with mouse-click clusters in the "Checkout" view.</p>
             <div className="p-5 rounded-2xl bg-white/5 border border-white/10 text-[13px] font-mono leading-relaxed text-brand-300">
-              <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px] block mb-2 opacity-50">System Logs:</span>
+              <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px] block mb-2 opacity-90">System Logs:</span>
               "High confidence (92%) that address validation is the primary barrier."
             </div>
           </div>

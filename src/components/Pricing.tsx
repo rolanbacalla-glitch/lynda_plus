@@ -35,7 +35,7 @@ const pricingTiers = [
     name: "Enterprise",
     price: "Custom",
     period: "",
-    description: "Advanced agentic orchestration for global organizations.",
+    description: "Advanced agentic orchestration for global organisations.",
     features: [
       "Custom Antigravity Orchestrator Workflows",
       "Data Sovereignty (London/EU Regions)",

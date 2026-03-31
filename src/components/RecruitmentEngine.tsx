@@ -67,7 +67,11 @@ const RecruitmentEngine: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest pl-1">Experience</label>
-              <select className="w-full h-14 px-6 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 text-sm font-bold text-slate-800 transition-all shadow-sm">
+              <select 
+                title="Select Experience Level"
+                aria-label="Experience Level"
+                className="w-full h-14 px-6 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 text-sm font-bold text-slate-800 transition-all shadow-sm"
+              >
                 <option>Intern / Junior</option>
                 <option>Mid-Level</option>
                 <option selected>Senior / Lead</option>
@@ -76,7 +80,11 @@ const RecruitmentEngine: React.FC = () => {
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest pl-1">Region</label>
-              <select className="w-full h-14 px-6 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 text-sm font-bold text-slate-800 transition-all shadow-sm">
+              <select 
+                title="Select Target Region"
+                aria-label="Target Region"
+                className="w-full h-14 px-6 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 text-sm font-bold text-slate-800 transition-all shadow-sm"
+              >
                 <option>North America</option>
                 <option>Europe</option>
                 <option selected>Remote Global</option>
@@ -94,7 +102,7 @@ const RecruitmentEngine: React.FC = () => {
                 <span className="material-symbols-rounded text-white text-4xl animate-spin">sync</span>
               </div>
               <div>
-                <h4 className="text-xl font-bold text-white mb-2">Analyzing Global Panel...</h4>
+                <h4 className="text-xl font-bold text-white mb-2">Analysing Global Panel...</h4>
                 <p className="text-indigo-200/60 text-xs font-medium uppercase tracking-widest">Sourcing candidates from 12k+ nodes</p>
               </div>
             </div>
@@ -103,7 +111,12 @@ const RecruitmentEngine: React.FC = () => {
               <div className="flex -space-x-4 mb-2">
                 {[1, 2, 3, 4].map(i => (
                   <div key={i} className="w-12 h-12 rounded-2xl border-4 border-slate-900 bg-slate-800 overflow-hidden shadow-xl transform group-hover/card:scale-110 transition-transform">
-                    <img src={`https://i.pravatar.cc/150?u=${i + 10}`} className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500" />
+                    <img 
+                      src={`https://i.pravatar.cc/150?u=${i + 10}`} 
+                      alt={`Potential Participant ${i}`}
+                      title={`Potential Participant Match ${i}`}
+                      className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500" 
+                    />
                   </div>
                 ))}
                 <div className="w-12 h-12 rounded-2xl border-4 border-slate-900 bg-brand-600 flex items-center justify-center text-white text-xs font-bold shadow-xl">

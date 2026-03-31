@@ -48,8 +48,8 @@ const Solutions: React.FC = () => {
           </h2>
         </div>
         {[
-          { title: 'Product Managers', desc: 'Prioritize roadmaps with high-confidence user intent data.', icon: 'analytics', color: 'indigo' },
-          { title: 'UX Designers', desc: 'Optimize user flows and visual hierarchy with rapid feedback.', icon: 'layers', color: 'brand' },
+          { title: 'Product Managers', desc: 'Prioritise roadmaps with high-confidence user intent data.', icon: 'analytics', color: 'indigo' },
+          { title: 'UX Designers', desc: 'Optimise user flows and visual hierarchy with rapid feedback.', icon: 'layers', color: 'brand' },
           { title: 'Marketers', desc: 'Test messaging and conversion intent before launching campaigns.', icon: 'campaign', color: 'rose' },
           { title: 'Researchers', desc: 'Advanced unmoderated and moderated multi-stage study patterns.', icon: 'psychology', color: 'emerald' }
         ].map((item) => (
@@ -78,7 +78,7 @@ const Solutions: React.FC = () => {
         </div>
         {[
           { title: 'Concept Validation', icon: 'lightbulb', color: 'emerald', detail: 'Validate vision before writing code.' },
-          { title: 'Information Architecture', icon: 'account_tree', color: 'indigo', detail: 'Optimize navigation and labeling.' },
+          { title: 'Information Architecture', icon: 'account_tree', color: 'indigo', detail: 'Optimise navigation and labelling.' },
           { title: 'Prototype Testing', icon: 'touch_app', color: 'amber', detail: 'Measure task success in interactive mockups.' },
           { title: 'Preference Testing', icon: 'view_carousel', color: 'brand', detail: 'Decide between design variations with data.' }
         ].map((item) => (
