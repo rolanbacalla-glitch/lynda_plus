@@ -1,0 +1,6 @@
+/* Reset App.css to avoid interference */
+#root {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
