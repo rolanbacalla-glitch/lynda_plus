@@ -13,6 +13,7 @@ import Tasks from './views/Tasks';
 import Solutions from './views/Solutions';
 import StudyPreview from './views/StudyPreview';
 import TeamSettings from './views/TeamSettings';
+import AgenticSession from './views/AgenticSession';
 
 const AppRouter: React.FC = () => {
   return (
@@ -23,6 +24,7 @@ const AppRouter: React.FC = () => {
           <Route index element={<ProjectList />} />
           <Route path="projects" element={<ProjectList />} />
           <Route path="projects/:projectId/insights" element={<ProjectInsights />} />
+          <Route path="projects/:projectId/session" element={<AgenticSession />} />
           <Route path="projects/:projectId/record" element={<ParticipantRecording />} />
           <Route path="create" element={<ProjectCreationWizard />} />
           <Route path="preview" element={<StudyPreview />} />
