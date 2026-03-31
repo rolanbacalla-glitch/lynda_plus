@@ -44,7 +44,7 @@ const AgenticReasoning: React.FC = () => {
             <h3 className="text-2xl font-bold font-display tracking-tight leading-none mb-2">Agentic Reasoning Engine</h3>
             <div className="flex items-center gap-2">
               <span className="flex w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none">Status: Live Inference (Gemini 1.5 Pro)</p>
+              <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest leading-none">Status: Live Inference (Gemini 1.5 Pro)</p>
             </div>
           </div>
         </div>
@@ -70,12 +70,12 @@ const AgenticReasoning: React.FC = () => {
                     {step.title}
                   </h4>
                   {step.confidence > 0 && (
-                    <span className="text-[10px] font-bold bg-white/5 border border-white/10 px-2 py-0.5 rounded-full text-slate-400 tracking-wider font-mono">
+                    <span className="text-[10px] font-bold bg-white/5 border border-white/10 px-2 py-0.5 rounded-full text-slate-600 tracking-wider font-mono">
                       CONF_LVL: {step.confidence}%
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-slate-400 font-medium leading-relaxed leading-relaxed">
+                <p className="text-sm text-slate-600 font-medium leading-relaxed leading-relaxed">
                   {step.desc}
                 </p>
               </div>

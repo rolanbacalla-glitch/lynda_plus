@@ -18,7 +18,7 @@ const Inbox: React.FC = () => {
           <span className="material-symbols-rounded text-slate-300 text-4xl font-light">mail</span>
         </div>
         <h2 className="text-xl font-bold text-slate-900 mb-2">Your inbox is empty</h2>
-        <p className="text-slate-400 max-w-sm mx-auto">When you receive messages or session updates, they will appear here.</p>
+        <p className="text-slate-600 max-w-sm mx-auto">When you receive messages or session updates, they will appear here.</p>
       </div>
     </div>
   );

@@ -49,7 +49,7 @@ const TeamSettings: React.FC = () => {
                     </div>
                     <div>
                       <h4 className="font-bold text-slate-900">{member.name}</h4>
-                      <p className="text-xs text-slate-400 font-medium">{member.email}</p>
+                      <p className="text-xs text-slate-600 font-medium">{member.email}</p>
                     </div>
                   </div>
                   
@@ -80,11 +80,11 @@ const TeamSettings: React.FC = () => {
               {roles.map((role) => (
                 <div key={role.name} className="space-y-1">
                   <p className="text-xs font-black uppercase tracking-widest text-brand-400">{role.name}</p>
-                  <p className="text-sm text-slate-400 leading-relaxed font-medium">{role.desc}</p>
+                  <p className="text-sm text-slate-600 leading-relaxed font-medium">{role.desc}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-10 p-5 rounded-2xl bg-white/5 border border-white/10 italic text-xs text-slate-400">
+            <div className="mt-10 p-5 rounded-2xl bg-white/5 border border-white/10 italic text-xs text-slate-600">
               "Research teams with balanced roles report 32% faster insight synthesis."
             </div>
           </div>
@@ -125,7 +125,7 @@ const TeamSettings: React.FC = () => {
             
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Colleague Email</label>
+                <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-4">Colleague Email</label>
                 <input 
                   type="email" 
                   value={inviteEmail}

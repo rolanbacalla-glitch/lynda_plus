@@ -40,7 +40,7 @@ const ProjectList: React.FC = () => {
                   <span className="material-symbols-rounded">{icon}</span>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">{p.status}</p>
+                  <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter mb-0.5">{p.status}</p>
                   <p className="text-sm font-bold text-slate-800">{p.name}</p>
                   <div className="mt-2 h-1 w-24 bg-slate-100 rounded-full overflow-hidden">
                     <div className={`h-full rounded-full bg-${color}-500`} style={{ width: `${p.nps}%` }} />
@@ -109,7 +109,7 @@ const ProjectList: React.FC = () => {
                   <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="table-cell">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
                           <span className="material-symbols-rounded">folder</span>
                         </div>
                         <span className="font-bold text-slate-800">{p.name}</span>
@@ -119,13 +119,13 @@ const ProjectList: React.FC = () => {
                       <span className="px-3 py-1 bg-indigo-50 text-brand-600 border border-indigo-100 rounded-full text-[10px] font-bold uppercase">UI/UX Study</span>
                     </td>
                     <td className="table-cell">
-                      <span className={`text-[11px] font-bold ${p.status === 'Live' ? 'text-emerald-600' : 'text-slate-400'}`}>{p.status}</span>
+                      <span className={`text-[11px] font-bold ${p.status === 'Live' ? 'text-emerald-600' : 'text-slate-600'}`}>{p.status}</span>
                     </td>
                     <td className="table-cell text-right flex items-center justify-end gap-3 pt-6">
                       <Link to={`/dashboard/projects/${p.id}/session`} className="text-[10px] font-black text-brand-600 px-4 py-2 rounded-xl bg-brand-50 hover:bg-brand-600 hover:text-white transition-all uppercase tracking-widest no-underline shadow-sm">
                         Live Session
                       </Link>
-                      <Link to={`/dashboard/projects/${p.id}/insights`} className="p-2 rounded-xl border border-slate-100 text-slate-400 hover:text-brand-600 hover:border-brand-100 transition-all shadow-sm">
+                      <Link to={`/dashboard/projects/${p.id}/insights`} className="p-2 rounded-xl border border-slate-100 text-slate-600 hover:text-brand-600 hover:border-brand-100 transition-all shadow-sm">
                         <span className="material-symbols-rounded text-sm">analytics</span>
                       </Link>
                     </td>
@@ -162,13 +162,13 @@ const ProjectList: React.FC = () => {
           <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center justify-center gap-2">
             Keep it up, Jason! <span className="material-symbols-rounded text-orange-400">local_fire_department</span>
           </h3>
-          <p className="text-xs text-slate-400 mb-10 leading-relaxed font-medium">Your active studies have seen a 12% increase in sentiment positivity this week.</p>
+          <p className="text-xs text-slate-600 mb-10 leading-relaxed font-medium">Your active studies have seen a 12% increase in sentiment positivity this week.</p>
           
           <div className="flex justify-between items-end gap-3 h-32">
             {[40, 60, 35, 80, 50, 65, 45].map((h, i) => (
               <div key={i} className="flex-1 group">
                 <div className={`w-full rounded-t-lg transition-all duration-500 group-hover:bg-brand-600 ${i === 3 ? 'bg-brand-600' : 'bg-slate-100 opacity-80'}`} style={{ height: `${h}%` }} />
-                <p className="text-[10px] font-bold text-slate-400 mt-3">{['1-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31'][i]}</p>
+                <p className="text-[10px] font-bold text-slate-600 mt-3">{['1-5', '6-10', '11-15', '16-20', '21-25', '26-30', '31'][i]}</p>
               </div>
             ))}
           </div>
@@ -178,7 +178,7 @@ const ProjectList: React.FC = () => {
         <div>
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-lg font-bold text-slate-900">Key Participants</h2>
-            <button className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-brand-600 transition-all">+</button>
+            <button className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-600 hover:text-brand-600 transition-all">+</button>
           </div>
           <div className="space-y-6">
             {mockParticipants.map((p) => (
@@ -189,7 +189,7 @@ const ProjectList: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-800">{p.name}</p>
-                    <p className="text-[11px] text-slate-400 font-medium">{p.role}</p>
+                    <p className="text-[11px] text-slate-600 font-medium">{p.role}</p>
                   </div>
                 </div>
                 <button className="px-5 py-2 rounded-xl bg-white border border-slate-100 text-[10px] font-bold text-slate-600 shadow-sm hover:border-brand-600 hover:text-brand-600 transition-all">FOLLOW</button>

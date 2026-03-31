@@ -22,6 +22,7 @@ const DashboardLayout: React.FC = () => {
               <SidebarLink to="/dashboard" icon="grid_view" label="Dashboard" end />
               <SidebarLink to="/dashboard/inbox" icon="mail" label="Inbox" />
               <SidebarLink to="/dashboard/panel" icon="group" label="Participants" />
+              <SidebarLink to="/dashboard/recruitment" icon="campaign" label="Recruitment" />
               <SidebarLink to="/dashboard/sessions" icon="videocam" label="Sessions" />
               <SidebarLink to="/dashboard/tasks" icon="assignment" label="Tasks" />
             </nav>
@@ -113,7 +114,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label, end }) => (
   >
     {({ isActive }) => (
       <>
-        <span className={`material-symbols-rounded ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-brand-600'} transition-colors`}>
+        <span className={`material-symbols-rounded ${isActive ? 'text-white' : 'text-slate-600 group-hover:text-brand-600'} transition-colors`}>
           {icon}
         </span>
         {label}
@@ -129,7 +130,7 @@ const TeamMember: React.FC<{ name: string; status: string; avatar: string }> = (
     </div>
     <div>
       <p className="text-xs font-bold text-slate-800 leading-tight group-hover:text-brand-600 transition-colors">{name}</p>
-      <p className="text-[10px] text-slate-400 font-medium">{status}</p>
+      <p className="text-[10px] text-slate-600 font-medium">{status}</p>
     </div>
   </div>
 );

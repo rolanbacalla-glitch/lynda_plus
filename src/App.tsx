@@ -37,7 +37,7 @@ function App() {
             <Link to="/dashboard" className="hover:text-brand-600 transition-colors decoration-none no-underline">Dashboard</Link>
           </nav>
 
-          <p className="text-sm text-slate-400 font-medium">
+          <p className="text-sm text-slate-600 font-medium">
             &copy; 2026 LyndaPlus. Built with <span className="text-brand-600 font-bold">Agentic AI</span>.
           </p>
         </div>

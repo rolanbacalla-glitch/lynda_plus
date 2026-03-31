@@ -10,7 +10,7 @@ const ProjectInsights: React.FC = () => {
     <div className="view-container animate-fade-in px-12 py-12">
       <div className="header-section mb-14">
         <h1 className="text-4xl font-bold font-display text-slate-900 tracking-tight mb-2 italic">Automated Insights</h1>
-        <p className="text-xl text-slate-400 font-medium tracking-tight">Agentic Multimodal Synthesis for Project #{projectId}</p>
+        <p className="text-xl text-slate-600 font-medium tracking-tight">Agentic Multimodal Synthesis for Project #{projectId}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -33,7 +33,7 @@ const ProjectInsights: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-[15px] text-slate-500 font-medium leading-relaxed mb-6 leading-relaxed">{insight.description}</p>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold uppercase tracking-widest">
+                  <div className="flex items-center justify-between text-[11px] text-slate-600 font-bold uppercase tracking-widest">
                     <div className="flex items-center gap-2">
                        <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
                        <span>Inference Engine: Gemini 1.5 Pro</span>
@@ -53,7 +53,7 @@ const ProjectInsights: React.FC = () => {
                   <div className="w-0 h-0 border-t-[12px] border-t-transparent border-l-[22px] border-l-white border-b-[12px] border-b-transparent ml-2"></div>
                 </div>
                 <p className="text-white font-bold text-lg tracking-tight uppercase italic">Play Insight Highlight Reel</p>
-                <p className="text-slate-400 text-xs font-bold tracking-widest uppercase mt-2">AI-Synthesized from 12 hrs footage</p>
+                <p className="text-slate-600 text-xs font-bold tracking-widest uppercase mt-2">AI-Synthesized from 12 hrs footage</p>
               </div>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(79,70,229,0.2)_0%,transparent_80%)] opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 to-transparent"></div>
@@ -70,7 +70,7 @@ const ProjectInsights: React.FC = () => {
                 <div key={theme.name} className="space-y-2 group/theme cursor-default">
                   <div className="flex justify-between text-[11px] font-bold uppercase tracking-[0.2em] group-hover/theme:text-brand-600 transition-colors">
                     <span>{theme.name}</span>
-                    <span className="text-slate-400">{theme.count} mentions</span>
+                    <span className="text-slate-600">{theme.count} mentions</span>
                   </div>
                   <div className="h-4 w-full bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 p-0.5 shadow-inner">
                     <div 
@@ -87,7 +87,7 @@ const ProjectInsights: React.FC = () => {
           <div className="card glass p-10 md:p-12 bg-slate-950 text-white relative overflow-hidden group shadow-premium-dark">
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity" />
             <h3 className="text-xl font-bold mb-3 font-display italic tracking-tight uppercase">Multimodal Correlation</h3>
-            <p className="text-sm text-slate-400 leading-relaxed font-medium mb-6 leading-relaxed">System correlated verbal frustration with mouse-click clusters in the "Checkout" view.</p>
+            <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6 leading-relaxed">System correlated verbal frustration with mouse-click clusters in the "Checkout" view.</p>
             <div className="p-5 rounded-2xl bg-white/5 border border-white/10 text-[13px] font-mono leading-relaxed text-brand-300">
               <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px] block mb-2 opacity-50">System Logs:</span>
               "High confidence (92%) that address validation is the primary barrier."
@@ -98,9 +98,9 @@ const ProjectInsights: React.FC = () => {
             <h3 className="font-bold mb-4 text-slate-800">Engagement Heatmap</h3>
             <div className="aspect-square rounded-lg bg-slate-50 heatmap-box border border-slate-100 flex items-center justify-center p-4">
               <div className="text-center">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Click Density Layer</p>
+                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Click Density Layer</p>
                 <div className="w-full h-px bg-slate-200 my-2"></div>
-                <p className="text-[10px] text-slate-400">Gemini 3.1 Synthesis</p>
+                <p className="text-[10px] text-slate-600">Gemini 3.1 Synthesis</p>
               </div>
             </div>
           </div>
@@ -114,7 +114,7 @@ const ProjectInsights: React.FC = () => {
                 <path d="M 0 100 L 40 100 L 40 80 L 100 80" className="dendrogram-line" />
                 <path d="M 40 100 L 40 120 L 100 120" className="dendrogram-line" />
               </svg>
-              <div className="absolute inset-0 flex flex-col justify-between py-2 text-[10px] text-slate-400 pl-24">
+              <div className="absolute inset-0 flex flex-col justify-between py-2 text-[10px] text-slate-600 pl-24">
                 <span>Category A</span>
                 <span>Category B</span>
                 <span>Category C</span>

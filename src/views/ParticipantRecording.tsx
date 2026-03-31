@@ -45,7 +45,7 @@ const ParticipantRecording: React.FC = () => {
                 <div className={`w-20 h-20 rounded-full border-4 ${isRecording ? 'border-red-500 animate-pulse' : 'border-slate-700'} mb-4 flex items-center justify-center mx-auto`}>
                   <div className={`w-12 h-12 rounded-full ${isRecording ? 'bg-red-500' : 'bg-slate-700'}`}></div>
                 </div>
-                <p className="text-slate-400 font-medium">
+                <p className="text-slate-600 font-medium">
                   {isRecording ? 'LIVE FEED ACTIVE' : 'CAMERA READY'}
                 </p>
               </div>

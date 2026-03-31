@@ -32,7 +32,7 @@ const BiasAlertDemo: React.FC = () => {
             
             <div className="relative">
               <div className="mb-8">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-3">Live Research Guardrail</label>
+                <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest block mb-3">Live Research Guardrail</label>
                 <textarea 
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}

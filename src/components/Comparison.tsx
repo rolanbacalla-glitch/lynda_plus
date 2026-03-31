@@ -25,8 +25,8 @@ const Comparison: React.FC = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-slate-900/5 backdrop-blur-sm">
-                <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] border-b border-indigo-50/50">Capability</th>
-                <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] border-b border-indigo-50/50">Legacy Platforms</th>
+                <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-slate-600 uppercase tracking-[0.2em] border-b border-indigo-50/50">Capability</th>
+                <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-slate-600 uppercase tracking-[0.2em] border-b border-indigo-50/50">Legacy Platforms</th>
                 <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-brand-600 uppercase tracking-[0.2em] border-b border-brand-100/50">LyndaPlus</th>
               </tr>
             </thead>
@@ -34,7 +34,7 @@ const Comparison: React.FC = () => {
               {comparisons.map((item, i) => (
                 <tr key={i} className="hover:bg-brand-50/30 transition-colors group">
                   <td className="px-8 md:px-12 py-8 text-lg font-bold text-slate-900 tracking-tight">{item.feature}</td>
-                  <td className="px-8 md:px-12 py-8 text-[15px] font-medium text-slate-400">{item.legacy}</td>
+                  <td className="px-8 md:px-12 py-8 text-[15px] font-medium text-slate-600">{item.legacy}</td>
                   <td className="px-8 md:px-12 py-8 text-[15px] font-bold text-slate-800 underline decoration-2 decoration-brand-200 underline-offset-8 group-hover:decoration-brand-500 transition-all">{item.lynda}</td>
                 </tr>
               ))}

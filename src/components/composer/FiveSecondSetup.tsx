@@ -24,7 +24,7 @@ const FiveSecondSetup: React.FC<FiveSecondSetupProps> = ({ onChange, config }) =
         {/* Upload Area */}
         <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[32px] p-10 flex flex-col items-center justify-center text-center group hover:border-brand-300 hover:bg-brand-50/20 transition-all cursor-pointer min-h-[300px]">
           <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <span className="material-symbols-rounded text-slate-400 group-hover:text-brand-600">image</span>
+            <span className="material-symbols-rounded text-slate-600 group-hover:text-brand-600">image</span>
           </div>
           <h4 className="font-bold text-slate-900 mb-1">Click to upload screenshot</h4>
           <p className="text-xs text-slate-500 font-medium max-w-[200px]">Supports PNG, JPG, or Figma frames. Max 10MB.</p>
@@ -39,7 +39,7 @@ const FiveSecondSetup: React.FC<FiveSecondSetupProps> = ({ onChange, config }) =
                 <button
                   key={d}
                   onClick={() => { setDuration(d); handleChange('duration', d); }}
-                  className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${duration === d ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${duration === d ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-600 hover:text-slate-600'}`}
                 >
                   {d} Seconds
                 </button>

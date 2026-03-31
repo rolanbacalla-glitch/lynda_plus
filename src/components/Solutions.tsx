@@ -51,7 +51,7 @@ const Solutions: React.FC = () => {
           <div className="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-8">
             {sections.map((section, idx) => (
               <div key={idx} className="flex flex-col">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">
+                <h3 className="text-xs font-bold text-slate-600 uppercase tracking-[0.2em] mb-8">
                   {section.title}
                 </h3>
                 <ul className="space-y-5">

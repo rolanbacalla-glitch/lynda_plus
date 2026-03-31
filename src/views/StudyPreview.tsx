@@ -114,7 +114,7 @@ const StudyPreview: React.FC = () => {
       {/* Progress Header */}
       <div className="w-full max-w-5xl flex justify-between items-center mb-12">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-slate-400">
+          <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-slate-600">
             {currentSectionIndex + 1}
           </div>
           <div>
@@ -126,7 +126,7 @@ const StudyPreview: React.FC = () => {
             </div>
           </div>
         </div>
-        <button onClick={() => navigate('/dashboard/create')} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-red-500 transition-all">
+        <button onClick={() => navigate('/dashboard/create')} className="text-[10px] font-black text-slate-600 uppercase tracking-widest hover:text-red-500 transition-all">
           Exit Preview
         </button>
       </div>
@@ -142,7 +142,7 @@ const StudyPreview: React.FC = () => {
                      {timeLeft}
                    </div>
                  </div>
-                 <p className="text-2xl font-bold text-slate-400 animate-pulse">Observation in progress...</p>
+                 <p className="text-2xl font-bold text-slate-600 animate-pulse">Observation in progress...</p>
               </div>
             ) : (
               <div className="max-w-xl mx-auto space-y-8 animate-in slide-in-from-bottom-8 duration-500">
@@ -167,7 +167,7 @@ const StudyPreview: React.FC = () => {
             <div className="text-center space-y-4 max-w-2xl mx-auto">
               <span className="px-4 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black uppercase tracking-widest">First Click Task</span>
               <h2 className="text-4xl font-bold text-slate-900 font-display leading-tight">{currentSection.config.task}</h2>
-              <p className="text-slate-400 font-medium italic">Click the area on the image where you would perform this action.</p>
+              <p className="text-slate-600 font-medium italic">Click the area on the image where you would perform this action.</p>
             </div>
             
             <div 

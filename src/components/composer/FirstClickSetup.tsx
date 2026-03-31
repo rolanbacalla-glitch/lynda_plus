@@ -24,7 +24,7 @@ const FirstClickSetup: React.FC<FirstClickSetupProps> = ({ onChange, config }) =
         {/* Upload & Area Selection */}
         <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[32px] p-10 flex flex-col items-center justify-center text-center group hover:border-emerald-300 hover:bg-emerald-50/20 transition-all cursor-pointer min-h-[300px]">
           <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <span className="material-symbols-rounded text-slate-400 group-hover:text-emerald-600">ads_click</span>
+            <span className="material-symbols-rounded text-slate-600 group-hover:text-emerald-600">ads_click</span>
           </div>
           <h4 className="font-bold text-slate-900 mb-1">Click to upload target image</h4>
           <p className="text-xs text-slate-500 font-medium max-w-[200px]">Participants will click on this image to complete their task.</p>

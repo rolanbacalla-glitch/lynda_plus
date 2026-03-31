@@ -16,6 +16,9 @@ export interface Participant {
   experience: string;
   joined: string;
   avatar: string;
+  status: 'Active' | 'Inactive';
+  reliability: number;
+  tags: string[];
 }
 
 export interface TeamMember {
@@ -60,9 +63,42 @@ export const mockThemes = [
 ];
 
 export const mockParticipants: Participant[] = [
-  { id: 'p1', name: 'Sarah Chen', age: 28, role: 'Product Designer', experience: '5 years', joined: '2025-10-12', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150' },
-  { id: 'p2', name: 'Marcus Miller', age: 34, role: 'Software Engineer', experience: '8 years', joined: '2025-11-05', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150' },
-  { id: 'p3', name: 'Elena Rodriguez', age: 42, role: 'Marketing Manager', experience: '12 years', joined: '2025-08-20', avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150' },
+  { 
+    id: 'p1', 
+    name: 'Sarah Chen', 
+    age: 28, 
+    role: 'Product Designer', 
+    experience: '5 years', 
+    joined: '2025-10-12', 
+    status: 'Active',
+    reliability: 98,
+    tags: ['UX Expert', 'SaaS', 'Mobile'],
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150' 
+  },
+  { 
+    id: 'p2', 
+    name: 'Marcus Miller', 
+    age: 34, 
+    role: 'Software Engineer', 
+    experience: '8 years', 
+    joined: '2025-11-05', 
+    status: 'Active',
+    reliability: 92,
+    tags: ['React', 'Node.js', 'Scaling'],
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150' 
+  },
+  { 
+    id: 'p3', 
+    name: 'Elena Rodriguez', 
+    age: 42, 
+    role: 'Marketing Manager', 
+    experience: '12 years', 
+    joined: '2025-08-20', 
+    status: 'Inactive',
+    reliability: 85,
+    tags: ['Growth', 'Strategy', 'B2B'],
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150' 
+  },
 ];
 
 export const mockTeamMembers: TeamMember[] = [

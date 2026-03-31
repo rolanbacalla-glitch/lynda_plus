@@ -33,7 +33,7 @@ const AgenticSession: React.FC = () => {
             <h1 className="text-3xl font-bold font-display text-slate-800 tracking-tight leading-none mb-2">Live Session Analysis</h1>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Recording: Participant #48 (Mobile Onboarding) • {projectId}</p>
+              <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Recording: Participant #48 (Mobile Onboarding) • {projectId}</p>
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@ const AgenticSession: React.FC = () => {
             <div className="absolute bottom-10 left-10 right-10 z-20 flex items-center justify-between pointer-events-none">
               <div className="p-6 rounded-[32px] bg-slate-900/80 backdrop-blur-xl border border-white/10 flex items-center gap-8 min-w-[300px]">
                 <div className="text-center">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Emotion</p>
+                  <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Emotion</p>
                   <p className={`text-sm font-bold transition-all duration-500 uppercase ${sentiment === 'frustrated' ? 'text-rose-400' : sentiment === 'positive' ? 'text-emerald-400' : 'text-slate-300'}`}>
                     {sentiment}
                   </p>
@@ -83,7 +83,7 @@ const AgenticSession: React.FC = () => {
                   <div className={`h-full transition-all duration-1000 ${sentiment === 'frustrated' ? 'bg-rose-400 w-[85%]' : sentiment === 'positive' ? 'bg-emerald-400 w-[40%]' : 'bg-slate-400 w-[60%]'}`} />
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Engagement</p>
+                  <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-1">Engagement</p>
                   <p className="text-sm font-bold text-brand-400 uppercase">92% High</p>
                 </div>
               </div>
@@ -98,7 +98,7 @@ const AgenticSession: React.FC = () => {
             <h3 className="text-xl font-bold mb-6 text-slate-900 font-display tracking-tight">Session Transcript (Real-time Extraction)</h3>
             <div className="space-y-6">
               <div className="flex gap-6 items-start">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 flex-shrink-0 font-bold text-xs">P</div>
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 flex-shrink-0 font-bold text-xs">P</div>
                 <p className="text-[15px] text-slate-700 font-medium leading-relaxed italic">"I'm trying to find the checkout button, but it seems there are too many steps in this onboarding flow. Is there any way to skip?"</p>
               </div>
               <div className="flex gap-6 items-start">
@@ -134,7 +134,7 @@ const AgenticSession: React.FC = () => {
                   <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                     <span className="material-symbols-rounded text-sm">verified</span>
                   </div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">Neutral tone detected</p>
+                  <p className="text-[11px] font-bold text-slate-600 uppercase tracking-[0.1em]">Neutral tone detected</p>
                 </div>
               </div>
 

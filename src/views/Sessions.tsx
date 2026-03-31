@@ -18,7 +18,7 @@ const Sessions: React.FC = () => {
           <span className="material-symbols-rounded text-slate-300 text-4xl font-light">videocam</span>
         </div>
         <h2 className="text-xl font-bold text-slate-900 mb-2">No upcoming sessions</h2>
-        <p className="text-slate-400 max-w-sm mx-auto">Schedule your first interview session or upload a recording to get started.</p>
+        <p className="text-slate-600 max-w-sm mx-auto">Schedule your first interview session or upload a recording to get started.</p>
       </div>
     </div>
   );

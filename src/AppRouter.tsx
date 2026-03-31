@@ -14,6 +14,7 @@ import Solutions from './views/Solutions';
 import StudyPreview from './views/StudyPreview';
 import TeamSettings from './views/TeamSettings';
 import AgenticSession from './views/AgenticSession';
+import RecruitingCampaigns from './views/RecruitingCampaigns';
 
 const AppRouter: React.FC = () => {
   return (
@@ -29,6 +30,7 @@ const AppRouter: React.FC = () => {
           <Route path="create" element={<ProjectCreationWizard />} />
           <Route path="preview" element={<StudyPreview />} />
           <Route path="panel" element={<ParticipantPanel />} />
+          <Route path="recruitment" element={<RecruitingCampaigns />} />
           <Route path="inbox" element={<Inbox />} />
           <Route path="sessions" element={<Sessions />} />
           <Route path="tasks" element={<Tasks />} />
