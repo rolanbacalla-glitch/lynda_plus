@@ -86,7 +86,7 @@ const ProjectInsights: React.FC = () => {
 
           <div className="card glass p-10 md:p-12 bg-slate-950 text-white relative overflow-hidden group shadow-premium-dark">
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity" />
-            <h3 className="text-xl font-bold mb-3 font-display italic tracking-tight uppercase">Multimodal Correlation</h3>
+            <h3 className="text-xl font-bold mb-3 font-display tracking-tight uppercase">Multimodal Correlation</h3>
             <p className="text-sm text-slate-600 leading-relaxed font-medium mb-6 leading-relaxed">System correlated verbal frustration with mouse-click clusters in the "Checkout" view.</p>
             <div className="p-5 rounded-2xl bg-white/5 border border-white/10 text-[13px] font-mono leading-relaxed text-brand-300">
               <span className="text-slate-500 font-bold uppercase tracking-widest text-[10px] block mb-2 opacity-90">System Logs:</span>

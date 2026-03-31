@@ -1,7 +1,18 @@
+import { useState } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { mockTeamMembers } from '../data/mockData';
+import BuyCreditsModal from '../components/BuyCreditsModal';
+
 
 const DashboardLayout: React.FC = () => {
+  const [credits, setCredits] = useState(2.4);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handlePurchase = (amount: number) => {
+    setCredits(prev => prev + amount);
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="flex min-h-screen bg-[#F8F9FD] font-sans antialiased">
       {/* Sidebar */}
@@ -57,11 +68,39 @@ const DashboardLayout: React.FC = () => {
             <input
               type="text"
               placeholder="Search studies, participants, or insights..."
-              className="w-full h-14 pl-14 pr-6 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-brand-500/10 placeholder-slate-400 text-sm font-medium transition-all"
+              className="w-full h-14 pl-14 pr-6 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-brand-500/10 placeholder-slate-500 text-sm font-medium transition-all"
             />
           </div>
 
           <div className="flex items-center gap-6">
+            {/* AI Credits Indicator */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className={`flex items-center gap-3 px-5 py-2.5 rounded-2xl border transition-all hover:-translate-y-0.0 active:scale-95 group shadow-sm ${credits < 5
+                ? 'bg-rose-50 border-rose-100 text-rose-600 hover:bg-rose-100'
+                : 'bg-brand-50 border-brand-100 text-brand-600 hover:bg-brand-100'
+                }`}
+            >
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-inner ${credits < 5 ? 'bg-rose-500 text-white' : 'bg-brand-600 text-white'
+                }`}>
+                <span className="material-symbols-rounded text-sm animate-pulse">psychology</span>
+              </div>
+              <div className="text-left">
+                <p className="text-[9px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">AI Credits</p>
+                <p className="text-sm font-bold leading-none tracking-tight">{credits.toFixed(1)} hrs</p>
+              </div>
+              <div className={`ml-2 w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
+                credits < 5 
+                ? 'text-rose-600 bg-rose-100/50 group-hover:bg-rose-500 group-hover:text-white' 
+                : 'bg-brand-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white'
+              }`}>
+                <span className="material-symbols-rounded text-xs">add</span>
+              </div>
+
+
+
+            </button>
+
             <div className="flex items-center gap-3">
               <button className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm hover:shadow-md transition-all">
                 <span className="material-symbols-rounded text-slate-500">mail</span>
@@ -71,6 +110,7 @@ const DashboardLayout: React.FC = () => {
                 <span className="absolute top-3 right-3 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white" />
               </button>
             </div>
+
 
             <div className="flex items-center gap-4 pl-6 border-l border-slate-100">
               <div className="text-right hidden sm:block">
@@ -90,7 +130,14 @@ const DashboardLayout: React.FC = () => {
           </div>
         </main>
       </div>
+
+      <BuyCreditsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onPurchase={handlePurchase}
+      />
     </div>
+
   );
 };
 
