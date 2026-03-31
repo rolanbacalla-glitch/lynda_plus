@@ -1,8 +1,8 @@
-# 🚀 Lyssna-Plus: Agentic User Research Platform
+# 🚀 Lynda-Plus: Agentic User Research Platform
 
 **"Meet Your New Agentic Research Collaborator"**
 
-Lyssna-Plus is a high-end, AI-powered user research platform designed to deliver deep, actionable insights with unprecedented speed. Built on the "Airy Intelligence" design system, it leverages Gemini 1.5 Pro and Gemini 3.1 Flash to automate the most complex parts of the research lifecycle.
+Lynda-Plus is a high-end, AI-powered user research platform designed to deliver deep, actionable insights with unprecedented speed. Built on the "Airy Intelligence" design system, it leverages Gemini 1.5 Pro and Gemini 3.1 Flash to automate the most complex parts of the research lifecycle.
 
 ## ✨ Key Features
 
