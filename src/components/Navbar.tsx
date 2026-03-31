@@ -14,6 +14,7 @@ const Navbar: React.FC = () => {
         
         <div className="hidden md:flex gap-10 items-center font-semibold text-sm">
           <a href="#features" className="text-slate-500 hover:text-brand-600 transition-colors">Features</a>
+          <a href="#solutions" className="text-slate-500 hover:text-brand-600 transition-colors">Solutions</a>
           <a href="#roadmap" className="text-slate-500 hover:text-brand-600 transition-colors">Roadmap</a>
           <a href="#pricing" className="text-slate-500 hover:text-brand-600 transition-colors">Pricing</a>
           <Link to="/dashboard" className="bg-slate-950 text-white px-7 py-3 rounded-2xl shadow-premium hover:bg-brand-600 transition-all hover:shadow-brand-500/20 active:scale-95">

@@ -1,10 +1,10 @@
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import BiasAlertDemo from './components/BiasAlertDemo';
-import Comparison from './components/Comparison';
-import Roadmap from './components/Roadmap';
 import AgenticInsight from './components/AgenticInsight';
-
+import Comparison from './components/Comparison';
+import Solutions from './components/Solutions';
+import Roadmap from './components/Roadmap';
 import Pricing from './components/Pricing';
 
 function App() {
@@ -16,6 +16,7 @@ function App() {
         <BiasAlertDemo />
         <AgenticInsight />
         <Comparison />
+        <Solutions />
         <Roadmap />
         <Pricing />
       </main>
@@ -29,6 +30,7 @@ function App() {
           
           <nav className="flex gap-8 text-sm font-medium text-slate-500">
             <a href="#features" className="hover:text-brand-600 transition-colors">Features</a>
+            <a href="#solutions" className="hover:text-brand-600 transition-colors">Solutions</a>
             <a href="#roadmap" className="hover:text-brand-600 transition-colors">Roadmap</a>
             <a href="#pricing" className="hover:text-brand-600 transition-colors">Pricing</a>
             <a href="/dashboard" className="hover:text-brand-600 transition-colors">Dashboard</a>
