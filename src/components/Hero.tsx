@@ -9,15 +9,15 @@ const Hero: React.FC = () => {
           <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
           Now featuring Agentic AI Analysis
         </div>
-        
+
         <h1 className="text-6xl md:text-8xl font-black text-slate-900 mb-8 tracking-tighter leading-[0.9]">
-          Lynda <span className="text-gradient">Plus</span>
+          Lynda<span className="text-gradient">Plus</span>
         </h1>
-        
+
         <p className="text-xl md:text-2xl text-slate-500 max-w-[800px] mx-auto mb-14 leading-relaxed font-medium">
-          Stop using passive tools. Lynda-Plus uses Agentic AI to actively guide your research, detect subtle bias, and automate complex synthesis in real-time.
+          Stop using passive tools. LyndaPlus uses Agentic AI to actively guide your research, detect subtle bias, and automate complex synthesis in real-time.
         </p>
-        
+
         <div className="flex flex-col sm:flex-row gap-5 justify-center items-center mb-0">
           <Link to="/dashboard" className="bg-slate-950 text-white px-10 py-4 rounded-2xl font-bold shadow-premium hover:bg-brand-600 transition-all hover:shadow-brand-500/25 active:scale-95 text-lg no-underline">
             Start Free Trial

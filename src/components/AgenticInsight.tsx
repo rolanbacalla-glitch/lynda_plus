@@ -30,7 +30,7 @@ const AgenticInsight: React.FC = () => {
             Beyond Passive AI
           </h2>
           <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            Competitors offer summaries. Lynda-Plus offers a collaborator that works alongside you to ensure research integrity and depth.
+            Competitors offer summaries. LyndaPlus offers a collaborator that works alongside you to ensure research integrity and depth.
           </p>
         </div>
 

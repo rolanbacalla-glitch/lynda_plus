@@ -57,7 +57,7 @@ const Pricing: React.FC = () => {
             Predictable Pricing for <span className="text-gradient">Agentic Workflows</span>
           </h2>
           <p className="text-xl text-slate-500 max-w-[800px] mx-auto leading-relaxed">
-            Whether you're a solo researcher or a global enterprise, Lynda-Plus scales with your need for speed and security.
+            Whether you're a solo researcher or a global enterprise, LyndaPlus scales with your need for speed and security.
           </p>
         </div>
 

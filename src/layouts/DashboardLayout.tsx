@@ -11,7 +11,7 @@ const DashboardLayout: React.FC = () => {
             <div className="w-10 h-10 bg-brand-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20 group-hover:rotate-12 transition-transform">
               <span className="font-bold text-lg">L+</span>
             </div>
-            <span className="text-xl font-bold text-slate-800 tracking-tight">Lynda<span className="text-brand-500"> Plus</span></span>
+            <span className="text-xl font-bold text-slate-800 tracking-tight">Lynda<span className="text-brand-500">Plus</span></span>
           </Link>
         </div>
 

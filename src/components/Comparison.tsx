@@ -17,7 +17,7 @@ const Comparison: React.FC = () => {
             Legacy Workflow vs. <span className="text-gradient">Agentic Future</span>
           </h2>
           <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            Traditional platforms give you data. Lynda-Plus gives you the answer.
+            Traditional platforms give you data. LyndaPlus gives you the answer.
           </p>
         </div>
         
@@ -27,7 +27,7 @@ const Comparison: React.FC = () => {
               <tr className="bg-slate-900/5 backdrop-blur-sm">
                 <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] border-b border-indigo-50/50">Capability</th>
                 <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] border-b border-indigo-50/50">Legacy Platforms</th>
-                <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-brand-600 uppercase tracking-[0.2em] border-b border-brand-100/50">Lynda-Plus</th>
+                <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-brand-600 uppercase tracking-[0.2em] border-b border-brand-100/50">LyndaPlus</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-indigo-50/50">

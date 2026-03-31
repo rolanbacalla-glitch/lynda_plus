@@ -9,9 +9,9 @@ const Navbar: React.FC = () => {
           <div className="w-9 h-9 bg-brand-600 rounded-xl grid place-items-center shadow-lg group-hover:scale-105 transition-transform">
             <span className="text-white font-bold text-sm">L+</span>
           </div>
-          <span className="text-xl font-bold text-slate-900 tracking-tight">Lynda<span className="text-brand-500"> Plus</span></span>
+          <span className="text-xl font-bold text-slate-900 tracking-tight">Lynda<span className="text-brand-500">Plus</span></span>
         </Link>
-        
+
         <div className="hidden md:flex gap-10 items-center font-semibold text-sm">
           <a href="#features" className="text-slate-500 hover:text-brand-600 transition-colors">Features</a>
           <a href="#solutions" className="text-slate-500 hover:text-brand-600 transition-colors">Solutions</a>
