@@ -63,28 +63,27 @@ const Pricing: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {pricingTiers.map((tier, index) => (
-            <div 
-              key={index} 
-              className={`flex flex-col p-10 md:p-14 rounded-[40px] transition-all duration-500 hover:-translate-y-3 relative overflow-hidden ${
-                tier.featured 
-                  ? 'bg-white border-2 border-brand-500 shadow-2xl scale-[1.05] z-10' 
-                  : 'bg-slate-50/50 border border-indigo-50/50 hover:bg-white hover:shadow-premium'
-              }`}
+            <div
+              key={index}
+              className={`flex flex-col p-10 md:p-14 rounded-[40px] transition-all duration-500 hover:-translate-y-3 relative overflow-hidden ${tier.featured
+                ? 'bg-white border-2 border-brand-500 shadow-2xl scale-[1.05] z-10'
+                : 'bg-slate-50/50 border border-indigo-50/50 hover:bg-white hover:shadow-premium'
+                }`}
             >
               {tier.featured && (
                 <div className="absolute top-8 right-8 bg-brand-600 text-white px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.2em] shadow-lg animate-pulse">
                   MOST POPULAR
                 </div>
               )}
-              
+
               <div className="text-sm font-bold tracking-[0.2em] text-brand-600 mb-6 uppercase">{tier.name}</div>
-              
+
               <div className="text-5xl md:text-6xl font-bold mb-4 font-display text-slate-950 tracking-tighter">
-                {tier.price}<span className="text-lg text-slate-400 font-medium tracking-normal ml-1">{tier.period}</span>
+                {tier.price}<span className="text-lg text-slate-500 font-medium tracking-normal ml-1">{tier.period}</span>
               </div>
-              
+
               <div className="text-slate-500 mb-10 min-h-[4rem] leading-relaxed font-medium">{tier.description}</div>
-              
+
               <ul className="space-y-5 mb-12">
                 {tier.features.map((feature, fIndex) => (
                   <li key={fIndex} className="flex items-start gap-4 text-[14px] text-slate-600 font-medium">
@@ -94,15 +93,14 @@ const Pricing: React.FC = () => {
                 ))}
               </ul>
 
-              <div className="mt-auto pt-8 border-t border-indigo-50 text-[13px] leading-relaxed text-slate-400 italic">
+              <div className="mt-auto pt-8 border-t border-indigo-50 text-[13px] leading-relaxed text-slate-600 italic">
                 <strong className="not-italic text-slate-900 font-bold block mb-2 uppercase tracking-widest text-[10px]">Actual Case Study</strong> {tier.useCase}
               </div>
 
-              <button className={`mt-12 w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${
-                tier.featured 
-                  ? 'bg-slate-950 text-white shadow-lg hover:shadow-brand-500/25 hover:bg-brand-600 active:scale-[0.98]' 
-                  : 'bg-white border border-indigo-100 text-slate-900 hover:border-brand-600 hover:text-brand-600 hover:shadow-premium active:scale-[0.98]'
-              }`}>
+              <button className={`mt-12 w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${tier.featured
+                ? 'bg-slate-950 text-white shadow-lg hover:shadow-brand-500/25 hover:bg-brand-600 active:scale-[0.98]'
+                : 'bg-white border border-indigo-100 text-slate-900 hover:border-brand-600 hover:text-brand-600 hover:shadow-premium active:scale-[0.98]'
+                }`}>
                 {tier.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
               </button>
             </div>
