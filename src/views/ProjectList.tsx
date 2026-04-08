@@ -169,7 +169,7 @@ const ProjectList: React.FC = () => {
                 />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white shadow-lg overflow-hidden translate-y-1">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white shadow-lg overflow-hidden">
                 <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" alt="User" className="w-full h-full object-cover" />
               </div>
               <div className="absolute top-0 right-0 w-8 h-8 sm:w-10 sm:h-10 bg-brand-600 text-white text-[10px] font-bold rounded-full border-4 border-white flex items-center justify-center translate-x-2 -translate-y-2">74%</div>
