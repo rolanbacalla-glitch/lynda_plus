@@ -50,41 +50,41 @@ const pricingTiers = [
 
 const Pricing: React.FC = () => {
   return (
-    <section id="pricing" className="py-24 md:py-36 bg-white relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-10 animate-fade-in">
-        <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl mb-6 font-display font-bold text-slate-900 tracking-tight">
+    <section id="pricing" className="py-20 md:py-36 bg-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 animate-fade-in">
+        <div className="text-center mb-16 md:mb-20">
+          <h2 className="text-4xl md:text-6xl mb-6 font-display font-bold text-slate-900 tracking-tight leading-tight">
             Predictable Pricing for <span className="text-gradient">Agentic Workflows</span>
           </h2>
-          <p className="text-xl text-slate-500 max-w-[800px] mx-auto leading-relaxed">
-            Whether you're a solo researcher or a global enterprise, LyndaPlus scales with your need for speed and security.
+          <p className="text-lg md:text-xl text-slate-500 max-w-[800px] mx-auto leading-relaxed px-4">
+            Whether you're a solo researcher or a global enterprise, <span className="pr-0.5">LyndaPlus</span> scales with your need for speed and security.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10 items-stretch">
           {pricingTiers.map((tier, index) => (
             <div
               key={index}
-              className={`flex flex-col p-10 md:p-14 rounded-[40px] transition-all duration-500 hover:-translate-y-3 relative overflow-hidden ${tier.featured
-                ? 'bg-white border-2 border-brand-500 shadow-2xl scale-[1.05] z-10'
+              className={`flex flex-col p-8 md:p-14 rounded-[32px] md:rounded-[40px] transition-all duration-500 relative overflow-hidden ${tier.featured
+                ? 'bg-white border-2 border-brand-500 shadow-2xl lg:scale-[1.05] z-10'
                 : 'bg-slate-50/50 border border-indigo-50/50 hover:bg-white hover:shadow-premium'
                 }`}
             >
               {tier.featured && (
-                <div className="absolute top-8 right-8 bg-brand-600 text-white px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.2em] shadow-lg animate-pulse">
+                <div className="absolute top-6 right-6 md:top-8 md:right-8 bg-brand-600 text-white px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.2em] shadow-lg animate-pulse">
                   MOST POPULAR
                 </div>
               )}
 
-              <div className="text-sm font-bold tracking-[0.2em] text-brand-600 mb-6 uppercase">{tier.name}</div>
+              <div className="text-xs font-bold tracking-[0.2em] text-brand-600 mb-6 uppercase">{tier.name}</div>
 
               <div className="text-5xl md:text-6xl font-bold mb-4 font-display text-slate-950 tracking-tighter">
                 {tier.price}<span className="text-lg text-slate-500 font-medium tracking-normal ml-1">{tier.period}</span>
               </div>
 
-              <div className="text-slate-500 mb-10 min-h-[4rem] leading-relaxed font-medium">{tier.description}</div>
+              <div className="text-slate-500 mb-10 min-h-[4rem] text-[15px] leading-relaxed font-medium">{tier.description}</div>
 
-              <ul className="space-y-5 mb-12">
+              <ul className="space-y-4 md:space-y-5 mb-12">
                 {tier.features.map((feature, fIndex) => (
                   <li key={fIndex} className="flex items-start gap-4 text-[14px] text-slate-600 font-medium">
                     <span className="flex-shrink-0 w-5 h-5 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-[10px] font-bold">✓</span>
@@ -97,7 +97,7 @@ const Pricing: React.FC = () => {
                 <strong className="not-italic text-slate-900 font-bold block mb-2 uppercase tracking-widest text-[10px]">Actual Case Study</strong> {tier.useCase}
               </div>
 
-              <button className={`mt-12 w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${tier.featured
+              <button className={`mt-10 md:mt-12 w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${tier.featured
                 ? 'bg-slate-950 text-white shadow-lg hover:shadow-brand-500/25 hover:bg-brand-600 active:scale-[0.98]'
                 : 'bg-white border border-indigo-100 text-slate-900 hover:border-brand-600 hover:text-brand-600 hover:shadow-premium active:scale-[0.98]'
                 }`}>

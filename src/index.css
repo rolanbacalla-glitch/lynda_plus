@@ -20,36 +20,101 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
+
+@keyframes scan {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(100%);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-brand {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: drop-shadow(0 0 0px rgba(99, 102, 241, 0));
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+  }
+}
+
+@keyframes progress-loading {
+  0% {
+    width: 0%;
+    transform: translateX(-100%);
+  }
+
+  50% {
+    width: 70%;
+    transform: translateX(0);
+  }
+
+  100% {
+    width: 100%;
+    transform: translateX(0);
+  }
+}
+
 
 @layer base {
   body {
     @apply bg-slate-50 text-slate-900 font-sans antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display tracking-tight font-semibold;
   }
 }
 
 @layer utilities {
   .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/40;
+    @apply bg-white/50 backdrop-blur-xl border border-white/40;
   }
 
   .card {
-    @apply rounded-[48px] p-10 border border-slate-100 shadow-premium transition-all bg-white text-slate-900 relative overflow-hidden;
+    @apply rounded-3xl md:rounded-[48px] p-6 md:p-14 border border-slate-100 shadow-premium transition-all bg-white text-slate-900 relative overflow-hidden;
   }
 
   .card-item {
-    @apply w-full flex items-center gap-4 p-6 rounded-[32px] bg-slate-50 hover:bg-white border border-transparent hover:border-slate-100 transition-all text-left;
+    @apply w-full flex items-center gap-4 p-4 md:p-6 rounded-2xl md:rounded-[32px] bg-slate-50 hover:bg-white border border-transparent hover:border-slate-100 transition-all text-left;
   }
 
   .glass-dark {
@@ -60,11 +125,11 @@
   .banner-gradient {
     background: linear-gradient(135deg, var(--color-brand-600) 0%, #7c3aed 100%);
   }
-  
+
   .table-header {
     @apply text-[10px] font-bold text-slate-600 uppercase tracking-widest py-4 px-6 border-b border-slate-100 bg-slate-50/50;
   }
-  
+
   .table-cell {
     @apply py-4 px-6 border-b border-slate-50 text-sm font-medium text-slate-700;
   }
@@ -76,6 +141,7 @@
 
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-indigo-400 font-bold;
+    padding-right: 0.1em;
   }
 
   .sidebar-gradient {
@@ -99,11 +165,28 @@
   }
 
   .section-title {
-    @apply text-3xl font-bold text-slate-900 font-display tracking-tight leading-tight;
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 font-display tracking-tight leading-tight;
   }
 
   .btn-explore {
     @apply text-[10px] font-black text-brand-600 hover:bg-brand-50 bg-white border border-slate-100 px-4 py-2 rounded-xl transition-all uppercase tracking-widest no-underline flex items-center gap-2;
+  }
+
+  .animate-scan-slow {
+    animation: scan 4s ease-in-out infinite;
+  }
+
+  /* Sentiment Overlays */
+  .bg-sentiment-neutral {
+    background: radial-gradient(circle at center, transparent 0%, rgba(148, 163, 184, 0.05) 100%);
+  }
+
+  .bg-sentiment-positive {
+    background: radial-gradient(circle at center, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.1) 100%);
+  }
+
+  .bg-sentiment-frustrated {
+    background: radial-gradient(circle at center, rgba(244, 63, 94, 0.05) 0%, rgba(244, 63, 94, 0.15) 100%);
   }
 }
 
