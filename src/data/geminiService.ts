@@ -45,6 +45,9 @@ export const getSessionAnalysis = async (transcriptSnippet: string): Promise<AIR
 
   try {
     const model = getGeminiModel();
+    if (!model) {
+      throw new Error("Gemini model not initialized");
+    }
     const prompt = `Analyze this user research snippet: "${transcriptSnippet}". 
     Provide:
     1. A single high-impact follow-up question.
@@ -52,7 +55,7 @@ export const getSessionAnalysis = async (transcriptSnippet: string): Promise<AIR
     3. Engagement score (0-100).
     Format as JSON: { "question": "...", "sentiment": "...", "score": 85 }`;
 
-    const result = await model.generateContent(prompt);
+    const result = await model!.generateContent(prompt);
     const responseText = result.response.text();
     // Softening JSON parse as Gemini might wrap in markdown
     const jsonStr = responseText.replace(/```json|```/g, '').trim();
