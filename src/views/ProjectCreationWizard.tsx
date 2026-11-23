@@ -13,12 +13,13 @@ import {
 import { auditResearchQuestion } from '../data/biasAnalyzer';
 import { useResearch } from '../contexts/ResearchContext';
 import { ASSETS, type StudyMethod } from '../data/mockData';
+import SpellCheckField from '../components/SpellCheckField';
 
 const METHODS: { value: StudyMethod; desc: string }[] = [
   { value: 'Moderated Interview', desc: 'Live video session with Privacy Shield and transcript guidance.' },
   { value: 'First-Click Test', desc: 'Measure navigation accuracy and first-click coordinates on mockups.' },
   { value: 'Five-Second Test', desc: 'Timed first-impression recall to test messaging and visual hierarchy.' },
-  { value: 'Usability Study', desc: 'Multi-task walkthrough combining screen behavior and open feedback.' },
+  { value: 'Usability Study', desc: 'Multi-task walkthrough combining screen behaviour and open feedback.' },
 ];
 
 const ProjectCreationWizard: React.FC = () => {
@@ -34,7 +35,8 @@ const ProjectCreationWizard: React.FC = () => {
   const [exposureSeconds, setExposureSeconds] = useState(5);
   const [targetParticipants, setTargetParticipants] = useState(25);
   const [privacyShield, setPrivacyShield] = useState(true);
-  const [voiceAnonymize, setVoiceAnonymize] = useState(false);
+  const [voiceAnonymise, setVoiceAnonymise] = useState(false);
+  const [autoCorrect, setAutoCorrect] = useState(true);
 
   const { addProject } = useResearch();
   const navigate = useNavigate();
@@ -109,6 +111,19 @@ const ProjectCreationWizard: React.FC = () => {
       {/* Step 1: Objective & Live Bias Audit */}
       {step === 1 && (
         <div className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-6 md:p-8 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[var(--sys-outline-variant)]">
+            <span className="text-xs text-[var(--sys-on-surface-tertiary)]">
+              British English spellcheck runs locally in your browser (zero API cost).
+            </span>
+            <button
+              type="button"
+              onClick={() => setAutoCorrect((prev) => !prev)}
+              className="text-xs font-semibold text-[var(--sys-primary)] hover:underline cursor-pointer"
+            >
+              Auto-correct: {autoCorrect ? 'On' : 'Off'}
+            </button>
+          </div>
+
           <div className="space-y-1.5">
             <label
               htmlFor="study-name"
@@ -116,12 +131,11 @@ const ProjectCreationWizard: React.FC = () => {
             >
               Study Title
             </label>
-            <input
+            <SpellCheckField
               id="study-name"
-              type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full h-11 px-3.5 text-sm sys-input"
+              onChange={setName}
+              autoCorrectEnabled={autoCorrect}
               placeholder="e.g. Navigation Usability Audit"
             />
           </div>
@@ -133,12 +147,11 @@ const ProjectCreationWizard: React.FC = () => {
             >
               Research Objective
             </label>
-            <input
+            <SpellCheckField
               id="study-objective"
-              type="text"
               value={objective}
-              onChange={(e) => setObjective(e.target.value)}
-              className="w-full h-11 px-3.5 text-sm sys-input"
+              onChange={setObjective}
+              autoCorrectEnabled={autoCorrect}
               placeholder="What product decision will this study inform?"
             />
           </div>
@@ -165,12 +178,13 @@ const ProjectCreationWizard: React.FC = () => {
                 Neutrality {audit.score}/100
               </span>
             </div>
-            <textarea
+            <SpellCheckField
               id="primary-question"
+              multiline
               rows={3}
               value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              className="w-full p-3.5 text-sm sys-input resize-none leading-relaxed"
+              onChange={setQuestion}
+              autoCorrectEnabled={autoCorrect}
               placeholder="Write your main participant prompt..."
             />
 
@@ -360,16 +374,16 @@ const ProjectCreationWizard: React.FC = () => {
             <label className="flex items-center justify-between gap-4 cursor-pointer">
               <div>
                 <p className="text-sm font-medium text-[var(--sys-on-surface)]">
-                  Audio Voice Anonymization
+                  Audio Voice Anonymisation
                 </p>
                 <p className="text-xs text-[var(--sys-on-surface-tertiary)]">
-                  Neutralize participant vocal timbre for external stakeholder sharing.
+                  Neutralise participant vocal timbre for external stakeholder sharing.
                 </p>
               </div>
               <input
                 type="checkbox"
-                checked={voiceAnonymize}
-                onChange={(e) => setVoiceAnonymize(e.target.checked)}
+                checked={voiceAnonymise}
+                onChange={(e) => setVoiceAnonymise(e.target.checked)}
                 className="w-4 h-4 accent-[var(--sys-primary)]"
               />
             </label>
@@ -442,7 +456,7 @@ const ProjectCreationWizard: React.FC = () => {
               <span className="text-[var(--sys-on-surface-tertiary)]">Privacy Shield</span>
               <span className="font-semibold text-[var(--sys-on-surface)]">
                 {privacyShield ? 'Enabled' : 'Disabled'}
-                {voiceAnonymize ? ' + Voice Masking' : ''}
+                {voiceAnonymise ? ' + Voice Masking' : ''}
               </span>
             </div>
           </div>

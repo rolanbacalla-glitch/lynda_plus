@@ -68,7 +68,7 @@ const ParticipantPanel: React.FC = () => {
             Participant Panel
           </h1>
           <p className="text-sm text-[var(--sys-on-surface-secondary)] mt-1">
-            Verified research panelists with session reliability scores and expertise tags.
+            Verified research panellists with session reliability scores and expertise tags.
           </p>
         </div>
 

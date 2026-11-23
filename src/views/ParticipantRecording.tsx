@@ -77,7 +77,7 @@ const ParticipantRecording: React.FC = () => {
                 style={{ backgroundColor: 'var(--ref-danger)' }}
               >
                 <Square className="w-3.5 h-3.5 fill-current" />
-                <span>Stop & Synthesize</span>
+                <span>Stop & Synthesise</span>
               </button>
             )}
 

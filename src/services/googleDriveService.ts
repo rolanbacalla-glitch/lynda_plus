@@ -83,11 +83,7 @@ export async function readDriveScriptText(
   return text.trim();
 }
 
-export async function exportStudyBriefToDrive(
-  accessToken: string,
-  project: Project,
-  insights: InsightItem[]
-): Promise<DriveFileItem> {
+export function buildStudyBriefMarkdown(project: Project, insights: InsightItem[]): string {
   const studyInsights = insights.filter((i) => i.projectId === project.id);
   const effectiveInsights = studyInsights.length > 0 ? studyInsights : insights.slice(0, 4);
 
@@ -116,7 +112,15 @@ export async function exportStudyBriefToDrive(
     ]),
   ];
 
-  const markdownBody = lines.join('\n');
+  return lines.join('\n');
+}
+
+export async function exportStudyBriefToDrive(
+  accessToken: string,
+  project: Project,
+  insights: InsightItem[]
+): Promise<DriveFileItem> {
+  const markdownBody = buildStudyBriefMarkdown(project, insights);
   const metadata = {
     name: `${project.name} — Research Brief`,
     mimeType: 'application/vnd.google-apps.document',

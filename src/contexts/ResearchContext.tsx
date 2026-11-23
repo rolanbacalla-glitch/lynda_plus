@@ -377,7 +377,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               projectId: String(data.projectId || ''),
               studyName: String(data.studyName || ''),
               participantName: pName,
-              participantRole: String(data.participantRole || 'Verified Panelist'),
+              participantRole: String(data.participantRole || 'Verified Panellist'),
               participantAvatar: resolveAvatarUrl(undefined, pName),
               scheduledAt: String(data.scheduledAt || 'Upcoming'),
               duration: String(data.duration || '45 min'),
@@ -401,7 +401,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         (snap) => {
           const items: Participant[] = snap.docs.map((d) => {
             const data = d.data();
-            const pName = String(data.name || 'Panelist');
+            const pName = String(data.name || 'Panellist');
             return {
               id: d.id,
               name: pName,
@@ -535,7 +535,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         ownerId: activeUid,
         projectId: clampStr(insight.projectId, 128),
         title: clampStr(insight.title, 200, 'Finding'),
-        description: clampStr(insight.description, 1500, 'Observed behavior'),
+        description: clampStr(insight.description, 1500, 'Observed behaviour'),
         severity: insight.severity,
         timestamp: 'Today',
         clipTime: clampStr(insight.clipTime, 20, '00:00'),
@@ -670,7 +670,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         projectId: clampStr(s.projectId, 128),
         studyName: clampStr(s.studyName, 160, 'Study'),
         participantName: clampStr(s.participantName, 120, 'Participant'),
-        participantRole: clampStr(s.participantRole, 120, 'Verified Panelist'),
+        participantRole: clampStr(s.participantRole, 120, 'Verified Panellist'),
         scheduledAt: clampStr(s.scheduledAt, 80, 'Upcoming'),
         duration: clampStr(s.duration, 40, '45 min'),
         status: s.status,

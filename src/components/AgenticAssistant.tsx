@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 const TIPS = [
   "Insight: Participant #48 showed 12% higher frustration than the median.",
   "Proactive: I've identified a recurring theme of 'Search Confusion'.",
-  "Status: AI pipeline is 100% synchronized with live session.",
+  "Status: AI pipeline is 100% synchronised with live session.",
   "Tip: Try asking about the checkout flow next; there's a micro-hesitation there.",
   "Success: I've redacted 4 instances of PII in the last 2 minutes."
 ];

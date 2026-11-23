@@ -92,7 +92,7 @@ const AgenticInsight: React.FC = () => {
                 Turn raw session hours into timestamped highlights and engineering tasks
               </h3>
               <p className="text-sm text-[var(--sys-on-surface-secondary)] leading-relaxed">
-                Every synthesized insight links directly to the exact video clip, participant context, and mention count—so product managers can promote validated friction points into sprint tasks in one click.
+                Every synthesised insight links directly to the exact video clip, participant context, and mention count—so product managers can promote validated friction points into sprint tasks in one click.
               </p>
             </div>
 

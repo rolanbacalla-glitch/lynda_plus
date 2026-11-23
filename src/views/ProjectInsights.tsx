@@ -79,7 +79,7 @@ const ProjectInsights: React.FC = () => {
         token = await connectGoogleDrive();
       }
       if (!token) {
-        setDriveError('Google Drive authorization is required to export this study brief.');
+        setDriveError('Google Drive authorisation is required to export this study brief.');
         return;
       }
       const created = await exportStudyBriefToDrive(token, project, insights);
@@ -236,7 +236,7 @@ const ProjectInsights: React.FC = () => {
             rows={2}
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
-            placeholder="Supporting evidence and observed participant behavior..."
+            placeholder="Supporting evidence and observed participant behaviour..."
             className="w-full p-3.5 text-sm sys-input resize-none"
           />
           <div className="flex justify-end gap-2">
@@ -261,7 +261,7 @@ const ProjectInsights: React.FC = () => {
           <section className="rounded-[var(--sys-radius-lg)] sys-surface-lowest overflow-hidden">
             <div className="p-5 border-b border-[var(--sys-outline-variant)] flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-base font-bold text-[var(--sys-on-surface)]">
-                Synthesized Findings
+                Synthesised Findings
               </h2>
               <div className="inline-flex items-center gap-1 p-1 rounded-[var(--sys-radius-sm)] bg-[var(--sys-surface-low)] border border-[var(--sys-outline-variant)]">
                 {(['All', 'Critical', 'Opportunity', 'Positive'] as const).map((sev) => (
@@ -375,7 +375,7 @@ const ProjectInsights: React.FC = () => {
             <div className="rounded-[var(--sys-radius-md)] overflow-hidden border border-[var(--sys-outline-variant)] relative aspect-video bg-[var(--sys-surface-low)]">
               <img
                 src={ASSETS.heroStudio}
-                alt="Synthesized research session highlight"
+                alt="Synthesised research session highlight"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />

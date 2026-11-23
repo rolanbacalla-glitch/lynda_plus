@@ -67,7 +67,7 @@ const SOLUTIONS_DATA: Record<CategoryKey, { title: string; items: SolutionDetail
         label: 'Research Ops & UX Leads',
         headline: 'Set methodological & compliance guardrails across every squad',
         summary:
-          'Democratize research safely—every PM script passes neutrality checks and every recording passes Privacy Shield automatically.',
+          'Democratise research safely—every PM script passes neutrality checks and every recording passes Privacy Shield automatically.',
         workflow: [
           'Audit Google Drive scripts in bulk before fieldwork begins',
           'Enforce owner-scoped Firestore governance and role permissions',
@@ -82,7 +82,7 @@ const SOLUTIONS_DATA: Record<CategoryKey, { title: string; items: SolutionDetail
         summary:
           'Catch hypothetical intent and confirmation bias as you write questions, then push verified customer clips straight into Linear or Jira.',
         workflow: [
-          'Rewrite leading questions into behavioral prompts in one click',
+          'Rewrite leading questions into behavioural prompts in one click',
           'Export concise Google Doc synthesis briefs for leadership reviews',
           'Convert high-mention friction into formatted engineering issues',
         ],

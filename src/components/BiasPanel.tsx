@@ -96,7 +96,7 @@ const BiasPanel: React.FC = () => {
                     className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--sys-primary)] hover:underline cursor-pointer"
                   >
                     <Wand2 className="w-3 h-3" />
-                    <span>Neutralize</span>
+                    <span>Neutralise</span>
                   </button>
                 )}
               </div>

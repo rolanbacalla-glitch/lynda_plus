@@ -79,7 +79,7 @@ const ProjectList: React.FC = () => {
 
         <div className="p-5 rounded-[var(--sys-radius-md)] sys-surface-lowest">
           <p className="text-xs font-medium text-[var(--sys-on-surface-tertiary)]">
-            Verified Panelists
+            Verified Panellists
           </p>
           <p className="text-2xl font-bold font-mono text-[var(--sys-on-surface)] mt-1.5">
             {participants.length}

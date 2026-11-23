@@ -50,7 +50,7 @@ const BIAS_RULES: BiasRule[] = [
     severity: 'warning',
     penalty: 36,
     explanation:
-      'Participants reliably overestimate future behavior. Anchor questions in recent past behavior instead.',
+      'Participants reliably overestimate future behaviour. Anchor questions in recent past behaviour instead.',
     rewrite: () => 'Tell me about the last time you solved this problem. What tools or workarounds did you use?',
   },
   {
@@ -63,7 +63,7 @@ const BIAS_RULES: BiasRule[] = [
     rewrite: () => 'How does this compare to the workflow you currently rely on?',
   },
   {
-    pattern: /\b(best|worst|favorite|always|never)\b/i,
+    pattern: /\b(best|worst|favou?rite|always|never)\b/i,
     category: 'Extreme Quantifier',
     severity: 'warning',
     penalty: 24,
@@ -106,7 +106,7 @@ export function auditResearchQuestion(input: string): BiasAuditResult {
       category: 'Closed Yes/No Framing',
       matchedPhrase: trimmed.split(' ').slice(0, 2).join(' '),
       explanation:
-        'Closed questions invite one-word answers. Open with "How", "What", or "Walk me through" to uncover behavioral context.',
+        'Closed questions invite one-word answers. Open with "How", "What", or "Walk me through" to uncover behavioural context.',
       suggestion: `Walk me through what happened when you tried to ${trimmed
         .replace(/^(do|did|is|are|was|were|can|could)\s+you\s+/i, '')
         .replace(/\?$/, '')}.`,

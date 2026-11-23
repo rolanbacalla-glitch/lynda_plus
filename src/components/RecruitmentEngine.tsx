@@ -46,7 +46,7 @@ const RecruitmentEngine: React.FC = () => {
             Audience Targeting Builder
           </h2>
           <p className="text-xs text-[var(--sys-on-surface-secondary)] mt-0.5">
-            Define persona filters to estimate available verified panelists and launch sourcing.
+            Define persona filters to estimate available verified panellists and launch sourcing.
           </p>
         </div>
         <span className="text-xs font-mono text-[var(--sys-on-surface-tertiary)] tabular-nums">
@@ -192,14 +192,14 @@ const RecruitmentEngine: React.FC = () => {
                   <img
                     key={i}
                     src={src}
-                    alt="Matched verified panelist"
+                    alt="Matched verified panellist"
                     referrerPolicy="no-referrer"
                     className="w-8 h-8 rounded-full object-cover border-2 border-[var(--sys-surface-low)]"
                   />
                 ))}
               </div>
               <span className="text-xs text-[var(--sys-on-surface-tertiary)] tabular-nums">
-                +{estimatedPool - 3} more verified panelists
+                +{estimatedPool - 3} more verified panellists
               </span>
             </div>
           </div>

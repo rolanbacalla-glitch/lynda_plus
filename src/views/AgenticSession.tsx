@@ -173,7 +173,7 @@ const AgenticSession: React.FC = () => {
             style={{ backgroundColor: 'var(--ref-danger)' }}
           >
             <PhoneOff className="w-3.5 h-3.5" />
-            <span>End & Synthesize</span>
+            <span>End & Synthesise</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, RotateCcw, Wand2 } from 'lucide-react';
 import { auditResearchQuestion } from '../data/biasAnalyzer';
+import SpellCheckField from './SpellCheckField';
 
 const SAMPLE_PROMPTS = [
   {
@@ -115,12 +116,12 @@ const BiasAlertDemo: React.FC = () => {
               </div>
             </div>
 
-            <textarea
+            <SpellCheckField
               id="demo-bias-input"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
+              multiline
               rows={3}
-              className="w-full p-4 text-base sys-input resize-none leading-relaxed"
+              value={question}
+              onChange={setQuestion}
               placeholder="Type a study question to evaluate neutrality..."
             />
 

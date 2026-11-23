@@ -28,7 +28,7 @@ const Sessions: React.FC = () => {
       projectId: project.id,
       studyName: project.name,
       participantName,
-      participantRole: participant?.role || 'Verified Panelist',
+      participantRole: participant?.role || 'Verified Panellist',
       scheduledAt: scheduledAt.trim() || 'Upcoming',
       duration,
       status: 'Scheduled',
@@ -44,7 +44,7 @@ const Sessions: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[var(--sys-on-surface)]">Sessions</h1>
           <p className="text-sm text-[var(--sys-on-surface-secondary)] mt-1">
-            Live interview rooms, upcoming bookings, and synthesized session recordings.
+            Live interview rooms, upcoming bookings, and synthesised session recordings.
           </p>
         </div>
 

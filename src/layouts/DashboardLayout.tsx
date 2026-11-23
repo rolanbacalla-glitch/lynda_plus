@@ -90,7 +90,7 @@ const DashboardLayout: React.FC = () => {
       .map((p) => ({
         id: `part-${p.id}`,
         label: p.name,
-        meta: `Panelist · ${p.role}`,
+        meta: `Panellist · ${p.role}`,
         to: '/dashboard/panel',
       }));
     const taskHits = tasks
@@ -345,7 +345,7 @@ const DashboardLayout: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setTimeout(() => setSearchFocused(false), 180)}
-                placeholder="Search studies, panelists..."
+                placeholder="Search studies, panellists..."
                 aria-label="Search workspace"
                 className="w-full h-10 pl-9 pr-3 text-xs sys-input"
               />
@@ -376,7 +376,7 @@ const DashboardLayout: React.FC = () => {
                     </ul>
                   ) : (
                     <p className="px-4 py-3 text-xs text-[var(--sys-on-surface-tertiary)]">
-                      No matching studies, panelists, or actions.
+                      No matching studies, panellists, or actions.
                     </p>
                   )}
                 </div>

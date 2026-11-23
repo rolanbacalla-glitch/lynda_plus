@@ -434,7 +434,7 @@ export const mockTasks: ResearchTask[] = [
   },
   {
     id: 'tk4',
-    title: 'Finalize 50-participant screener for Pricing Five-Second Test',
+    title: 'Finalise 50-participant screener for Pricing Five-Second Test',
     studyName: 'Pricing Page First-Impression Test',
     assignee: 'Elena Rodriguez',
     dueDate: 'Mar 29',

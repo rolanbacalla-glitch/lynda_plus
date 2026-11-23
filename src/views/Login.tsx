@@ -20,7 +20,8 @@ const Login: React.FC = () => {
       return 'Your browser blocked the Google sign-in popup. Allow popups for this site and try again.';
     }
     if (message.includes('auth/unauthorized-domain')) {
-      return 'This preview domain is still syncing with Firebase Auth. You can use Demo Workspace below right now.';
+      const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+      return `“${host}” is not yet in Firebase Authorised Domains. Use Preview Demo Workspace below (100% local & free) or add this domain in Firebase Auth Settings.`;
     }
     return message || 'Unable to sign in. Please try again or enter Demo Workspace.';
   };

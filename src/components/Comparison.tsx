@@ -7,8 +7,8 @@ const COMPETITOR_ROWS = [
     lynda: 'Client-side Privacy Shield masks faces, cards & IBANs in-browser before bytes leave the device',
   },
   {
-    dimension: 'Research Rigor for PMs & Designers',
-    incumbents: 'Repositories (Dovetail) synthesize transcripts only after biased questions ruin fieldwork',
+    dimension: 'Research Rigour for PMs & Designers',
+    incumbents: 'Repositories (Dovetail) synthesise transcripts only after biased questions ruin fieldwork',
     lynda: 'Pre-launch Observer Bias Auditor catches leading, priming & hypothetical prompts upfront',
   },
   {
