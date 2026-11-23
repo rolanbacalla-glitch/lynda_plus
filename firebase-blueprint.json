@@ -1,0 +1,475 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A user research study owned by a researcher, including script neutrality score and privacy shield settings.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID of the study owner."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "Study title."
+        },
+        "method": {
+          "type": "string",
+          "enum": ["Moderated Interview", "First-Click Test", "Five-Second Test", "Usability Study"],
+          "description": "Research methodology."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Draft", "Live", "Completed"],
+          "description": "Lifecycle state of the study."
+        },
+        "participants": {
+          "type": "number",
+          "description": "Completed participant count."
+        },
+        "targetParticipants": {
+          "type": "number",
+          "description": "Target participant count."
+        },
+        "timeToInsight": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Median turnaround duration."
+        },
+        "neutralityScore": {
+          "type": "number",
+          "description": "Script bias neutrality score (0-100)."
+        },
+        "completionRate": {
+          "type": "number",
+          "description": "Percentage of participants who completed the study (0-100)."
+        },
+        "lastUpdated": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Human-readable last updated label."
+        },
+        "objective": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Primary study objective."
+        },
+        "primaryQuestion": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Core prompt audited for observer bias."
+        },
+        "privacyShieldEnabled": {
+          "type": "boolean",
+          "description": "Whether in-buffer client-side PII masking is enforced."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when last updated."
+        }
+      },
+      "required": [
+        "ownerId",
+        "name",
+        "method",
+        "status",
+        "participants",
+        "targetParticipants",
+        "timeToInsight",
+        "neutralityScore",
+        "completionRate",
+        "lastUpdated",
+        "objective",
+        "primaryQuestion",
+        "privacyShieldEnabled",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Insight": {
+      "title": "Insight",
+      "description": "An evidence-backed qualitative finding tied to a study and timestamped clip.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["Critical", "Opportunity", "Positive"]
+        },
+        "timestamp": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "clipTime": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "participantName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "mentions": {
+          "type": "number"
+        },
+        "promotedToTask": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "projectId",
+        "title",
+        "description",
+        "severity",
+        "timestamp",
+        "clipTime",
+        "participantName",
+        "mentions",
+        "promotedToTask",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Session": {
+      "title": "Session",
+      "description": "A scheduled, live, or completed usability interview session.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "studyName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "participantName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "participantRole": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "scheduledAt": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "duration": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Scheduled", "Live", "Completed"]
+        },
+        "privacyShield": {
+          "type": "boolean"
+        },
+        "highlightsCount": {
+          "type": "number"
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "projectId",
+        "studyName",
+        "participantName",
+        "participantRole",
+        "scheduledAt",
+        "duration",
+        "status",
+        "privacyShield",
+        "highlightsCount",
+        "summary",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Participant": {
+      "title": "Participant",
+      "description": "A researcher-owned BYO customer panelist record (strictly owner-scoped).",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "age": {
+          "type": "number"
+        },
+        "role": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "company": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "experience": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "joined": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Active", "Inactive"]
+        },
+        "reliability": {
+          "type": "number"
+        },
+        "sessionsCompleted": {
+          "type": "number"
+        },
+        "shortlisted": {
+          "type": "boolean"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Up to 10 persona tags."
+        },
+        "recentNote": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "name",
+        "age",
+        "role",
+        "company",
+        "experience",
+        "joined",
+        "location",
+        "status",
+        "reliability",
+        "sessionsCompleted",
+        "shortlisted",
+        "tags",
+        "recentNote",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ResearchTask": {
+      "title": "ResearchTask",
+      "description": "An action item or external Linear/Jira handoff tracked from research insights.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "studyName": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "assignee": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "dueDate": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["High", "Medium", "Low"]
+        },
+        "completed": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "title",
+        "studyName",
+        "assignee",
+        "dueDate",
+        "priority",
+        "completed",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "DriveAuditRecord": {
+      "title": "DriveAuditRecord",
+      "description": "Immutable log of Google Drive research brief exports and script imports.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "driveFileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "mimeType": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "action": {
+          "type": "string",
+          "enum": ["export_brief", "import_script", "attach_artifact"]
+        },
+        "studyName": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "webViewLink": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "driveFileId",
+        "fileName",
+        "mimeType",
+        "action",
+        "studyName",
+        "webViewLink",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Research studies owned by authenticated researchers."
+    },
+    "/insights/{insightId}": {
+      "schema": { "$ref": "#/entities/Insight" },
+      "description": "Evidence-backed findings linked to an owner's project."
+    },
+    "/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/Session" },
+      "description": "Scheduled, live, and completed research sessions linked to an owner's project."
+    },
+    "/participants/{participantId}": {
+      "schema": { "$ref": "#/entities/Participant" },
+      "description": "Owner-isolated BYO customer research panelists."
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/ResearchTask" },
+      "description": "Owner-scoped research action items and backlog handoffs."
+    },
+    "/driveExports/{exportId}": {
+      "schema": { "$ref": "#/entities/DriveAuditRecord" },
+      "description": "Owner-scoped audit trail of Google Drive exports and imports."
+    }
+  }
+}

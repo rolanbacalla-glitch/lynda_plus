@@ -1,0 +1,353 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Global Hardened Helpers
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    function isBootstrappedAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'rolan.bacalla@gmail.com';
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function ownsProject(projectId) {
+      return isValidId(projectId) &&
+        exists(/databases/$(database)/documents/projects/$(projectId)) &&
+        get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+    }
+
+    // -------------------------------------------------------------------------
+    // Entity Validation Blueprints (Anti-Update-Gap)
+    // -------------------------------------------------------------------------
+    function isValidProject(data) {
+      return data.keys().hasAll([
+          'ownerId', 'name', 'method', 'status', 'participants', 'targetParticipants',
+          'timeToInsight', 'neutralityScore', 'completionRate', 'lastUpdated',
+          'objective', 'primaryQuestion', 'privacyShieldEnabled', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId', 'name', 'method', 'status', 'participants', 'targetParticipants',
+          'timeToInsight', 'neutralityScore', 'completionRate', 'lastUpdated',
+          'objective', 'primaryQuestion', 'privacyShieldEnabled', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.ownerId) &&
+        data.ownerId == request.auth.uid &&
+        isValidString(data.name, 1, 160) &&
+        data.method in ['Moderated Interview', 'First-Click Test', 'Five-Second Test', 'Usability Study'] &&
+        data.status in ['Draft', 'Live', 'Completed'] &&
+        data.participants is number && data.participants >= 0 && data.participants <= 100000 &&
+        data.targetParticipants is number && data.targetParticipants >= 1 && data.targetParticipants <= 100000 &&
+        isValidString(data.timeToInsight, 1, 40) &&
+        data.neutralityScore is number && data.neutralityScore >= 0 && data.neutralityScore <= 100 &&
+        data.completionRate is number && data.completionRate >= 0 && data.completionRate <= 100 &&
+        isValidString(data.lastUpdated, 1, 64) &&
+        isValidString(data.objective, 0, 1000) &&
+        isValidString(data.primaryQuestion, 0, 1000) &&
+        data.privacyShieldEnabled is bool &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidInsight(data) {
+      return data.keys().hasAll([
+          'ownerId', 'projectId', 'title', 'description', 'severity',
+          'timestamp', 'clipTime', 'participantName', 'mentions',
+          'promotedToTask', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId', 'projectId', 'title', 'description', 'severity',
+          'timestamp', 'clipTime', 'participantName', 'mentions',
+          'promotedToTask', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.ownerId) &&
+        data.ownerId == request.auth.uid &&
+        isValidId(data.projectId) &&
+        isValidString(data.title, 1, 200) &&
+        isValidString(data.description, 1, 1500) &&
+        data.severity in ['Critical', 'Opportunity', 'Positive'] &&
+        isValidString(data.timestamp, 1, 64) &&
+        isValidString(data.clipTime, 1, 20) &&
+        isValidString(data.participantName, 1, 120) &&
+        data.mentions is number && data.mentions >= 1 && data.mentions <= 10000 &&
+        data.promotedToTask is bool &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidSession(data) {
+      return data.keys().hasAll([
+          'ownerId', 'projectId', 'studyName', 'participantName', 'participantRole',
+          'scheduledAt', 'duration', 'status', 'privacyShield', 'highlightsCount',
+          'summary', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId', 'projectId', 'studyName', 'participantName', 'participantRole',
+          'scheduledAt', 'duration', 'status', 'privacyShield', 'highlightsCount',
+          'summary', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.ownerId) &&
+        data.ownerId == request.auth.uid &&
+        isValidId(data.projectId) &&
+        isValidString(data.studyName, 1, 160) &&
+        isValidString(data.participantName, 1, 120) &&
+        isValidString(data.participantRole, 1, 120) &&
+        isValidString(data.scheduledAt, 1, 80) &&
+        isValidString(data.duration, 1, 40) &&
+        data.status in ['Scheduled', 'Live', 'Completed'] &&
+        data.privacyShield is bool &&
+        data.highlightsCount is number && data.highlightsCount >= 0 && data.highlightsCount <= 1000 &&
+        isValidString(data.summary, 0, 1000) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidParticipant(data) {
+      return data.keys().hasAll([
+          'ownerId', 'name', 'age', 'role', 'company', 'experience', 'joined',
+          'location', 'status', 'reliability', 'sessionsCompleted', 'shortlisted',
+          'tags', 'recentNote', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId', 'name', 'age', 'role', 'company', 'experience', 'joined',
+          'location', 'status', 'reliability', 'sessionsCompleted', 'shortlisted',
+          'tags', 'recentNote', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.ownerId) &&
+        data.ownerId == request.auth.uid &&
+        isValidString(data.name, 1, 120) &&
+        data.age is number && data.age >= 18 && data.age <= 120 &&
+        isValidString(data.role, 1, 120) &&
+        isValidString(data.company, 1, 120) &&
+        isValidString(data.experience, 1, 60) &&
+        isValidString(data.joined, 1, 64) &&
+        isValidString(data.location, 1, 120) &&
+        data.status in ['Active', 'Inactive'] &&
+        data.reliability is number && data.reliability >= 0 && data.reliability <= 100 &&
+        data.sessionsCompleted is number && data.sessionsCompleted >= 0 && data.sessionsCompleted <= 1000 &&
+        data.shortlisted is bool &&
+        data.tags is list && data.tags.size() <= 10 &&
+        (data.tags.size() == 0 || (data.tags[0] is string && data.tags[0].size() <= 48)) &&
+        isValidString(data.recentNote, 0, 600) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll([
+          'ownerId', 'title', 'studyName', 'assignee', 'dueDate',
+          'priority', 'completed', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId', 'title', 'studyName', 'assignee', 'dueDate',
+          'priority', 'completed', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.ownerId) &&
+        data.ownerId == request.auth.uid &&
+        isValidString(data.title, 1, 240) &&
+        isValidString(data.studyName, 1, 160) &&
+        isValidString(data.assignee, 1, 120) &&
+        isValidString(data.dueDate, 1, 40) &&
+        data.priority in ['High', 'Medium', 'Low'] &&
+        data.completed is bool &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidDriveExport(data) {
+      return data.keys().hasAll([
+          'ownerId', 'driveFileId', 'fileName', 'mimeType',
+          'action', 'studyName', 'webViewLink', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId', 'driveFileId', 'fileName', 'mimeType',
+          'action', 'studyName', 'webViewLink', 'createdAt'
+        ]) &&
+        isValidId(data.ownerId) &&
+        data.ownerId == request.auth.uid &&
+        isValidString(data.driveFileId, 1, 200) &&
+        isValidString(data.fileName, 1, 240) &&
+        isValidString(data.mimeType, 1, 160) &&
+        data.action in ['export_brief', 'import_script', 'attach_artifact'] &&
+        isValidString(data.studyName, 1, 160) &&
+        isValidString(data.webViewLink, 0, 500) &&
+        data.createdAt is timestamp;
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection Rules
+    // -------------------------------------------------------------------------
+    match /projects/{projectId} {
+      allow get: if isSignedIn() && isValidId(projectId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser() && isValidId(projectId) &&
+        isValidProject(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser() && isValidId(projectId) &&
+        isValidProject(incoming()) &&
+        isOwner(existing().ownerId) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isBootstrappedAdmin() ||
+          (
+            existing().status != 'Completed' &&
+            (
+              // Action: Update study lifecycle status
+              incoming().diff(existing()).affectedKeys().hasOnly(['status', 'lastUpdated', 'updatedAt']) ||
+              // Action: Update study script or objective
+              incoming().diff(existing()).affectedKeys().hasOnly(['name', 'objective', 'primaryQuestion', 'neutralityScore', 'privacyShieldEnabled', 'lastUpdated', 'updatedAt']) ||
+              // Action: Update progress metrics
+              incoming().diff(existing()).affectedKeys().hasOnly(['participants', 'completionRate', 'timeToInsight', 'lastUpdated', 'updatedAt'])
+            )
+          )
+        );
+      allow delete: if isVerifiedUser() && isValidId(projectId) && isOwner(existing().ownerId);
+    }
+
+    match /insights/{insightId} {
+      allow get: if isSignedIn() && isValidId(insightId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser() && isValidId(insightId) &&
+        isValidInsight(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        ownsProject(incoming().projectId);
+      allow update: if isVerifiedUser() && isValidId(insightId) &&
+        isValidInsight(incoming()) &&
+        isOwner(existing().ownerId) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().projectId == existing().projectId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isBootstrappedAdmin() ||
+          // Action: Promote insight to tracked task/handoff
+          incoming().diff(existing()).affectedKeys().hasOnly(['promotedToTask', 'updatedAt']) ||
+          // Action: Edit insight details
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'severity', 'mentions', 'updatedAt'])
+        );
+      allow delete: if isVerifiedUser() && isValidId(insightId) && isOwner(existing().ownerId);
+    }
+
+    match /sessions/{sessionId} {
+      allow get: if isSignedIn() && isValidId(sessionId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser() && isValidId(sessionId) &&
+        isValidSession(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        ownsProject(incoming().projectId);
+      allow update: if isVerifiedUser() && isValidId(sessionId) &&
+        isValidSession(incoming()) &&
+        isOwner(existing().ownerId) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().projectId == existing().projectId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isBootstrappedAdmin() ||
+          (
+            existing().status != 'Completed' &&
+            (
+              // Action: Transition session state & highlights
+              incoming().diff(existing()).affectedKeys().hasOnly(['status', 'highlightsCount', 'summary', 'updatedAt']) ||
+              // Action: Toggle Privacy Shield setting
+              incoming().diff(existing()).affectedKeys().hasOnly(['privacyShield', 'updatedAt'])
+            )
+          )
+        );
+      allow delete: if isVerifiedUser() && isValidId(sessionId) && isOwner(existing().ownerId);
+    }
+
+    match /participants/{participantId} {
+      allow get: if isSignedIn() && isValidId(participantId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser() && isValidId(participantId) &&
+        isValidParticipant(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser() && isValidId(participantId) &&
+        isValidParticipant(incoming()) &&
+        isOwner(existing().ownerId) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isBootstrappedAdmin() ||
+          // Action: Toggle shortlist flag
+          incoming().diff(existing()).affectedKeys().hasOnly(['shortlisted', 'updatedAt']) ||
+          // Action: Update panelist notes & status
+          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'recentNote', 'tags', 'updatedAt'])
+        );
+      allow delete: if isVerifiedUser() && isValidId(participantId) && isOwner(existing().ownerId);
+    }
+
+    match /tasks/{taskId} {
+      allow get: if isSignedIn() && isValidId(taskId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser() && isValidId(taskId) &&
+        isValidTask(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser() && isValidId(taskId) &&
+        isValidTask(incoming()) &&
+        isOwner(existing().ownerId) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isBootstrappedAdmin() ||
+          // Action: Toggle task completion
+          incoming().diff(existing()).affectedKeys().hasOnly(['completed', 'updatedAt']) ||
+          // Action: Edit task priority/assignee/dueDate
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'assignee', 'dueDate', 'priority', 'updatedAt'])
+        );
+      allow delete: if isVerifiedUser() && isValidId(taskId) && isOwner(existing().ownerId);
+    }
+
+    match /driveExports/{exportId} {
+      allow get: if isSignedIn() && isValidId(exportId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isVerifiedUser() && isValidId(exportId) &&
+        isValidDriveExport(incoming()) &&
+        incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isVerifiedUser() && isValidId(exportId) && isOwner(existing().ownerId);
+    }
+  }
+}

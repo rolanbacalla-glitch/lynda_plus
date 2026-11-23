@@ -3,7 +3,7 @@ import { Moon, Sun } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import BiasAlertDemo from './components/BiasAlertDemo';
-import AgenticInsight from './components/AgenticInsight';
+import PrivacyShieldDemo from './components/PrivacyShieldDemo';
 import Comparison from './components/Comparison';
 import Solutions from './components/Solutions';
 import Pricing from './components/Pricing';
@@ -18,7 +18,7 @@ function App() {
       <main>
         <Hero />
         <BiasAlertDemo />
-        <AgenticInsight />
+        <PrivacyShieldDemo />
         <Comparison />
         <Solutions />
         <Pricing />
@@ -31,16 +31,22 @@ function App() {
               LyndaPlus
             </span>
             <p className="text-xs text-[var(--sys-on-surface-tertiary)]">
-              © 2026 LyndaPlus Research Systems. All rights reserved.
+              © 2026 LyndaPlus Research Systems · Sovereign UK/EU (europe-west2)
             </p>
           </div>
 
-          <nav aria-label="Footer" className="flex flex-wrap items-center gap-6 text-xs font-medium text-[var(--sys-on-surface-secondary)]">
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap items-center gap-6 text-xs font-medium text-[var(--sys-on-surface-secondary)]"
+          >
             <a href="#bias-audit" className="hover:text-[var(--sys-on-surface)] no-underline">
               Bias Audit
             </a>
-            <a href="#capabilities" className="hover:text-[var(--sys-on-surface)] no-underline">
-              Capabilities
+            <a href="#privacy-shield" className="hover:text-[var(--sys-on-surface)] no-underline">
+              Privacy Shield
+            </a>
+            <a href="#compare" className="hover:text-[var(--sys-on-surface)] no-underline">
+              Compare
             </a>
             <a href="#solutions" className="hover:text-[var(--sys-on-surface)] no-underline">
               Solutions

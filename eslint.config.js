@@ -3,10 +3,11 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import firebaseRulesPlugin from '@firebase/eslint-plugin-security-rules'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'dist/**/*']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -20,4 +21,6 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  firebaseRulesPlugin.configs['flat/recommended'],
 ])
+

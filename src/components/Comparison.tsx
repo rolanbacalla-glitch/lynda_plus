@@ -1,93 +1,99 @@
 import React from 'react';
 
-const COMPARISONS = [
+const COMPETITOR_ROWS = [
   {
-    capability: 'Script Quality & Bias Control',
-    legacy: 'Manual peer review after fieldwork begins',
-    lynda: 'Real-time linguistic audit & 1-click neutral rewrites',
+    dimension: 'Testing Live Production Flows (Billing, KYC, Clinical)',
+    incumbents: 'Prototype tools (Maze, Lyssna) stop at Figma; recording bots expose raw PII to US buckets',
+    lynda: 'Client-side Privacy Shield masks faces, cards & IBANs in-browser before bytes leave the device',
   },
   {
-    capability: 'Sensitive PII & Compliance',
-    legacy: 'Manual video blurring in post-production',
-    lynda: 'In-buffer face, card, and document Privacy Shield',
+    dimension: 'Research Rigor for PMs & Designers',
+    incumbents: 'Repositories (Dovetail) synthesize transcripts only after biased questions ruin fieldwork',
+    lynda: 'Pre-launch Observer Bias Auditor catches leading, priming & hypothetical prompts upfront',
   },
   {
-    capability: 'Live Interview Guidance',
-    legacy: 'Static discussion guides in a separate document',
-    lynda: 'Contextual follow-up prompts synced to live transcript',
+    dimension: 'Participant Recruiting Economics',
+    incumbents: 'Marketplace suites charge 3× panel markups and lock customer records inside closed silos',
+    lynda: 'BYO customer panel CRM + zero-markup links to Prolific, Respondent & User Interviews',
   },
   {
-    capability: 'Synthesis Turnaround',
-    legacy: '3–5 days of manual tagging & affinity sticky notes',
-    lynda: '1.8 hours median turnaround with timestamped clips',
+    dimension: 'Document & Sprint Handoff',
+    incumbents: 'Static slide decks and siloed task lists disconnected from where teams actually work',
+    lynda: '1-click Google Drive brief exports, Drive script auditing, and Linear/Jira evidence payloads',
   },
   {
-    capability: 'Stakeholder Handoff',
-    legacy: 'Static slide decks disconnected from sprint tracking',
-    lynda: 'Direct promotion of verified insights into tracked tasks',
+    dimension: 'Stakeholder Seat Pricing',
+    incumbents: 'Per-viewer licensing restricts Legal, Engineering, and Leadership from watching clips',
+    lynda: 'Unlimited viewer seats included on Team & Regulated plans so evidence actually ships',
   },
 ];
 
 const TESTIMONIALS = [
   {
     quote:
-      'We cut Checkout V2 synthesis from four days to a single afternoon. Catching two leading questions before launch saved us an entire round of rework.',
+      'Legal blocked every US recording bot from touching our live payout screens. LyndaPlus’s in-buffer Privacy Shield cleared InfoSec review in five days so we finally tested real treasury flows.',
     author: 'Hannah Lindqvist',
     role: 'Staff Product Designer, Finway Payments',
-    outcome: '78% faster synthesis across 120 participants',
+    outcome: '0 PII incidents across 120 live billing sessions',
   },
   {
     quote:
-      'Legal previously blocked live usability recordings on our billing screens. In-buffer Privacy Shield cleared compliance review in one week.',
+      'Our PMs run weekly discovery without a dedicated UXR on every squad. Auditing Google Docs scripts before launch eliminated leading questions and saved a full sprint of rework.',
     author: 'David Okafor',
     role: 'Head of Research Ops, CareBridge Health',
-    outcome: 'Zero PII incidents across 340+ sessions',
+    outcome: '78% faster synthesis with Drive & Linear handoff',
   },
 ];
 
 const Comparison: React.FC = () => {
   return (
-    <section className="py-16 md:py-24 bg-[var(--sys-surface-low)] border-b border-[var(--sys-outline-variant)]">
+    <section
+      id="compare"
+      className="py-16 md:py-24 bg-[var(--sys-surface-low)] border-b border-[var(--sys-outline-variant)]"
+    >
       <div className="max-w-7xl mx-auto px-6 md:px-10 space-y-12">
         <div className="max-w-2xl">
           <p className="text-xs font-medium text-[var(--sys-primary)] mb-3">
-            03. Workflow Impact
+            03. Competitive Positioning
           </p>
           <h2 className="text-3xl md:text-4xl font-bold text-[var(--sys-on-surface)] leading-tight mb-4">
-            Legacy research tooling vs. an active workspace.
+            Built for what prototype tools and post-hoc repositories miss.
           </h2>
           <p className="text-base text-[var(--sys-on-surface-secondary)] leading-relaxed">
-            Replace disconnected survey forms, recording bots, and manual tagging spreadsheets with one coherent system.
+            Keep your existing recruiting panels and issue trackers. Use LyndaPlus for pre-ingestion privacy, rigorous scripts, and sovereign UK/EU synthesis.
           </p>
         </div>
 
         {/* Comparison Table */}
         <div className="rounded-[var(--sys-radius-lg)] sys-surface-lowest overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[640px]">
+            <table className="w-full text-left border-collapse min-w-[680px]">
               <thead>
                 <tr className="border-b border-[var(--sys-outline-variant)] bg-[var(--sys-surface-low)]">
                   <th className="py-4 px-6 text-xs font-semibold text-[var(--sys-on-surface-secondary)]">
-                    Workflow Stage
+                    Decision Criteria
                   </th>
                   <th className="py-4 px-6 text-xs font-semibold text-[var(--sys-on-surface-tertiary)]">
-                    Legacy Tools
+                    Incumbent Stack (Maze / Dovetail / UserTesting)
                   </th>
                   <th className="py-4 px-6 text-xs font-semibold text-[var(--sys-primary)]">
-                    LyndaPlus Workspace
+                    LyndaPlus
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--sys-outline-variant)] text-sm">
-                {COMPARISONS.map((row) => (
-                  <tr key={row.capability} className="hover:bg-[var(--sys-surface-low)]/60 transition-colors">
-                    <td className="py-4 px-6 font-semibold text-[var(--sys-on-surface)]">
-                      {row.capability}
+                {COMPETITOR_ROWS.map((row) => (
+                  <tr
+                    key={row.dimension}
+                    className="hover:bg-[var(--sys-surface-low)]/60 transition-colors"
+                  >
+                    <td className="py-4 px-6 font-semibold text-[var(--sys-on-surface)] align-top">
+                      {row.dimension}
                     </td>
-                    <td className="py-4 px-6 text-[var(--sys-on-surface-tertiary)]">
-                      {row.legacy}
+                    <td className="py-4 px-6 text-[var(--sys-on-surface-tertiary)] align-top">
+                      {row.incumbents}
                     </td>
-                    <td className="py-4 px-6 font-medium text-[var(--sys-on-surface)]">
+                    <td className="py-4 px-6 font-medium text-[var(--sys-on-surface)] align-top">
                       {row.lynda}
                     </td>
                   </tr>

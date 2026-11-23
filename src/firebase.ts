@@ -1,43 +1,159 @@
-import { initializeApp } from "firebase/app";
-import { getAI, getGenerativeModel } from "firebase/ai";
-import { getAuth } from "firebase/auth";
+import { initializeApp } from 'firebase/app';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+  signOut,
+  type User,
+} from 'firebase/auth';
+import { doc, getDocFromServer, getFirestore } from 'firebase/firestore';
+import firebaseConfig from '../firebase-applet-config.json';
 
-// Firebase configuration using Vite environment variables
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-};
+export const GOOGLE_DRIVE_SCOPES = [
+  'https://www.googleapis.com/auth/drive',
+  'https://www.googleapis.com/auth/drive.activity',
+  'https://www.googleapis.com/auth/drive.activity.readonly',
+  'https://www.googleapis.com/auth/drive.appdata',
+  'https://www.googleapis.com/auth/drive.apps.readonly',
+  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/drive.install',
+  'https://www.googleapis.com/auth/drive.meet.readonly',
+  'https://www.googleapis.com/auth/drive.metadata',
+  'https://www.googleapis.com/auth/drive.metadata.readonly',
+  'https://www.googleapis.com/auth/drive.photos.readonly',
+  'https://www.googleapis.com/auth/drive.readonly',
+  'https://www.googleapis.com/auth/drive.scripts',
+] as const;
 
-// Initialize Firebase only if API key exists, otherwise log a warning
-// This prevents the whole app from crashing in demo environments
-const app = firebaseConfig.apiKey 
-  ? initializeApp(firebaseConfig)
-  : initializeApp({ apiKey: "demo-key", projectId: "demo-project" });
+const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Auth
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
+export const firebaseProjectId = firebaseConfig.projectId;
+export const firestoreDatabaseId = firebaseConfig.firestoreDatabaseId;
 
-// Initialize Firebase AI (Gemini)
-// Provide a safe check for AI initialization
-let aiInstance;
-try {
-  aiInstance = getAI(app);
-} catch (e) {
-  console.warn("Firebase AI initialization failed. Continuing with mock analysis.", e);
+// Validate connection to Firestore on startup
+async function testConnection() {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.error('Please check your Firebase configuration.');
+    }
+  }
+}
+void testConnection();
+
+// Structured Firestore Error Handling
+export const OperationType = {
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete',
+  LIST: 'list',
+  GET: 'get',
+  WRITE: 'write',
+} as const;
+
+export type OperationType = (typeof OperationType)[keyof typeof OperationType];
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
 }
 
-export const ai = aiInstance;
+export function handleFirestoreError(
+  error: unknown,
+  operationType: OperationType,
+  path: string | null
+): never {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo:
+        auth.currentUser?.providerData?.map((provider) => ({
+          providerId: provider.providerId,
+          email: provider.email,
+        })) || [],
+    },
+    operationType,
+    path,
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
-/**
- * Gets a reference to a Gemini generative model via Firebase.
- */
-export const getGeminiModel = (modelName = "gemini-1.5-flash") => {
-  if (!ai) return null;
-  return getGenerativeModel(ai, { model: modelName });
+// Configure GoogleAuthProvider with requested Google Drive Workspace scopes
+const googleProvider = new GoogleAuthProvider();
+for (const scope of GOOGLE_DRIVE_SCOPES) {
+  googleProvider.addScope(scope);
+}
+googleProvider.setCustomParameters({
+  prompt: 'select_account',
+});
+
+// In-memory cache ONLY for Google Workspace OAuth access token (never stored in localStorage/sessionStorage)
+let cachedDriveAccessToken: string | null = null;
+let isSigningIn = false;
+
+onAuthStateChanged(auth, (user) => {
+  if (!user && !isSigningIn) {
+    cachedDriveAccessToken = null;
+  }
+});
+
+export async function signInWithGoogleAndDrive(): Promise<{
+  user: User;
+  accessToken: string | null;
+}> {
+  isSigningIn = true;
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const accessToken = credential?.accessToken ?? null;
+    cachedDriveAccessToken = accessToken;
+    return { user: result.user, accessToken };
+  } finally {
+    isSigningIn = false;
+  }
+}
+
+export function getCachedDriveAccessToken(): string | null {
+  return cachedDriveAccessToken;
+}
+
+export function clearCachedDriveAccessToken(): void {
+  cachedDriveAccessToken = null;
+}
+
+export async function signOutFirebase(): Promise<void> {
+  cachedDriveAccessToken = null;
+  await signOut(auth);
+}
+
+// Legacy safe export for any auxiliary service references
+export const getGeminiModel = (
+  _modelName?: string
+): { generateContent: (prompt: string) => Promise<{ response: { text: () => string } }> } | null => {
+  void _modelName;
+  return null;
 };
 
 export default app;

@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ResearchProvider } from './contexts/ResearchContext';
 import { useAuth } from './hooks/useAuth';
+import ErrorBoundary from './components/ErrorBoundary';
 import App from './App';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProjectList from './views/ProjectList';
@@ -18,6 +19,8 @@ import StudyPreview from './views/StudyPreview';
 import TeamSettings from './views/TeamSettings';
 import AgenticSession from './views/AgenticSession';
 import RecruitingCampaigns from './views/RecruitingCampaigns';
+import DriveVault from './views/DriveVault';
+import IntegrationsHub from './views/IntegrationsHub';
 import Login from './views/Login';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,41 +38,45 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 const AppRouter: React.FC = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <ResearchProvider>
-          <Router basename={import.meta.env.BASE_URL}>
-            <Routes>
-              <Route path="/" element={<App />} />
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <DashboardLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<ProjectList />} />
-                <Route path="projects" element={<ProjectList />} />
-                <Route path="projects/:projectId/insights" element={<ProjectInsights />} />
-                <Route path="projects/:projectId/session" element={<AgenticSession />} />
-                <Route path="projects/:projectId/record" element={<ParticipantRecording />} />
-                <Route path="create" element={<ProjectCreationWizard />} />
-                <Route path="preview" element={<StudyPreview />} />
-                <Route path="panel" element={<ParticipantPanel />} />
-                <Route path="recruitment" element={<RecruitingCampaigns />} />
-                <Route path="inbox" element={<Inbox />} />
-                <Route path="sessions" element={<Sessions />} />
-                <Route path="tasks" element={<Tasks />} />
-                <Route path="settings/team" element={<TeamSettings />} />
-              </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Router>
-        </ResearchProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <ResearchProvider>
+            <Router basename={import.meta.env.BASE_URL}>
+              <Routes>
+                <Route path="/" element={<App />} />
+                <Route path="/login" element={<Login />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<ProjectList />} />
+                  <Route path="projects" element={<ProjectList />} />
+                  <Route path="projects/:projectId/insights" element={<ProjectInsights />} />
+                  <Route path="projects/:projectId/session" element={<AgenticSession />} />
+                  <Route path="projects/:projectId/record" element={<ParticipantRecording />} />
+                  <Route path="create" element={<ProjectCreationWizard />} />
+                  <Route path="preview" element={<StudyPreview />} />
+                  <Route path="panel" element={<ParticipantPanel />} />
+                  <Route path="drive" element={<DriveVault />} />
+                  <Route path="integrations" element={<IntegrationsHub />} />
+                  <Route path="recruitment" element={<RecruitingCampaigns />} />
+                  <Route path="inbox" element={<Inbox />} />
+                  <Route path="sessions" element={<Sessions />} />
+                  <Route path="tasks" element={<Tasks />} />
+                  <Route path="settings/team" element={<TeamSettings />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Router>
+          </ResearchProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

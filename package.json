@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@firebase/eslint-plugin-security-rules": "^0.0.2",
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.12.0",

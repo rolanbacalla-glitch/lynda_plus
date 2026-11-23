@@ -5,15 +5,16 @@ import { Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const NAV_LINKS = [
-  { name: 'Capabilities', href: '#capabilities' },
   { name: 'Bias Audit', href: '#bias-audit' },
+  { name: 'Privacy Shield', href: '#privacy-shield' },
+  { name: 'Compare', href: '#compare' },
   { name: 'Solutions', href: '#solutions' },
   { name: 'Pricing', href: '#pricing' },
 ];
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { currentUser, loginAsDemo } = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,12 +24,9 @@ const Navbar: React.FC = () => {
     };
   }, [isMenuOpen]);
 
-  const handleOpenWorkspace = async () => {
+  const handleOpenWorkspace = () => {
     setIsMenuOpen(false);
-    if (!currentUser) {
-      await loginAsDemo();
-    }
-    navigate('/dashboard');
+    navigate(currentUser ? '/dashboard' : '/login');
   };
 
   return (
@@ -42,8 +40,11 @@ const Navbar: React.FC = () => {
           LyndaPlus
         </Link>
 
-        {/* Zone 2: 4 single-line navigation links */}
-        <nav aria-label="Primary" className="hidden md:flex items-center gap-7 text-sm font-medium text-[var(--sys-on-surface-secondary)]">
+        {/* Zone 2: 5 concise single-line navigation links in exact page order */}
+        <nav
+          aria-label="Primary"
+          className="hidden md:flex items-center gap-7 text-sm font-medium text-[var(--sys-on-surface-secondary)]"
+        >
           {NAV_LINKS.map((link) => (
             <a
               key={link.name}
@@ -62,7 +63,7 @@ const Navbar: React.FC = () => {
             onClick={handleOpenWorkspace}
             className="hidden md:inline-flex items-center justify-center min-h-[40px] px-4 py-2 text-sm sys-btn-primary whitespace-nowrap shrink-0 cursor-pointer"
           >
-            Open Workspace
+            {currentUser ? 'Open Workspace' : 'Sign In'}
           </button>
 
           <button
@@ -91,13 +92,6 @@ const Navbar: React.FC = () => {
                   {link.name}
                 </a>
               ))}
-              <Link
-                to="/login"
-                onClick={() => setIsMenuOpen(false)}
-                className="py-3.5 px-4 text-base font-medium text-[var(--sys-on-surface-secondary)] rounded-[var(--sys-radius-md)] hover:bg-[var(--sys-surface-container)] no-underline"
-              >
-                Sign In
-              </Link>
             </nav>
 
             <button
@@ -105,7 +99,7 @@ const Navbar: React.FC = () => {
               onClick={handleOpenWorkspace}
               className="w-full min-h-[48px] px-6 py-3 text-sm sys-btn-primary cursor-pointer"
             >
-              Open Workspace
+              {currentUser ? 'Open Workspace' : 'Sign In'}
             </button>
           </div>,
           document.body

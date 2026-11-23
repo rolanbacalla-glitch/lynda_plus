@@ -6,9 +6,9 @@ import {
   PlusCircle,
   Video,
   Users,
-  Megaphone,
+  HardDrive,
+  Plug,
   CheckSquare,
-  Inbox as InboxIcon,
   Settings,
   LogOut,
   Search,
@@ -18,6 +18,7 @@ import {
   X,
   Clock,
   ChevronRight,
+  Cloud,
 } from 'lucide-react';
 import BuyCreditsModal from '../components/BuyCreditsModal';
 import { useAuth } from '../hooks/useAuth';
@@ -28,14 +29,16 @@ import { ASSETS } from '../data/mockData';
 const ROUTE_TITLES: Record<string, string> = {
   '/dashboard': 'Overview',
   '/dashboard/projects': 'Overview',
-  '/dashboard/create': 'New Study',
+  '/dashboard/create': 'Study Composer',
   '/dashboard/preview': 'Participant Preview',
   '/dashboard/sessions': 'Sessions',
-  '/dashboard/panel': 'Participants',
-  '/dashboard/recruitment': 'Campaigns',
-  '/dashboard/tasks': 'Tasks',
-  '/dashboard/inbox': 'Inbox',
-  '/dashboard/settings/team': 'Team Settings',
+  '/dashboard/panel': 'Customer Panel',
+  '/dashboard/drive': 'Google Drive Vault',
+  '/dashboard/integrations': 'Integrations & Handoff',
+  '/dashboard/recruitment': 'External Recruiting',
+  '/dashboard/tasks': 'Action Items',
+  '/dashboard/inbox': 'Messages',
+  '/dashboard/settings/team': 'Team & Governance',
 };
 
 const DashboardLayout: React.FC = () => {
@@ -44,9 +47,9 @@ const DashboardLayout: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
 
-  const { logout, currentUser } = useAuth();
+  const { logout, currentUser, isDemoMode, signInWithGoogle } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { credits, addCredits, projects, participants, tasks, inbox } = useResearch();
+  const { credits, addCredits, projects, participants, tasks, isCloudSynced } = useResearch();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -59,7 +62,6 @@ const DashboardLayout: React.FC = () => {
     };
   }, [isSidebarOpen]);
 
-  const unreadCount = useMemo(() => inbox.filter((m) => m.unread).length, [inbox]);
   const openTasksCount = useMemo(() => tasks.filter((t) => !t.completed).length, [tasks]);
 
   const currentSectionTitle = useMemo(() => {
@@ -88,7 +90,7 @@ const DashboardLayout: React.FC = () => {
       .map((p) => ({
         id: `part-${p.id}`,
         label: p.name,
-        meta: `Participant · ${p.role}`,
+        meta: `Panelist · ${p.role}`,
         to: '/dashboard/panel',
       }));
     const taskHits = tasks
@@ -97,7 +99,7 @@ const DashboardLayout: React.FC = () => {
       .map((t) => ({
         id: `task-${t.id}`,
         label: t.title,
-        meta: `Task · ${t.priority}`,
+        meta: `Action · ${t.priority}`,
         to: '/dashboard/tasks',
       }));
     return [...studyHits, ...participantHits, ...taskHits];
@@ -117,8 +119,17 @@ const DashboardLayout: React.FC = () => {
     }
   };
 
+  const handleUpgradeToGoogleSync = async () => {
+    try {
+      await signInWithGoogle();
+    } catch {
+      // Popup closed by user
+    }
+  };
+
   const displayName =
     currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Elena Rodriguez';
+  const avatarSrc = currentUser?.photoURL || ASSETS.avatarElena;
 
   const navContent = (
     <div className="flex flex-col h-full">
@@ -145,45 +156,83 @@ const DashboardLayout: React.FC = () => {
             Research
           </p>
           <nav aria-label="Workspace navigation" className="space-y-0.5">
-            <SidebarItem to="/dashboard" icon={<LayoutGrid className="w-4 h-4" />} label="Overview" onNavigate={closeMobileNav} end />
-            <SidebarItem to="/dashboard/create" icon={<PlusCircle className="w-4 h-4" />} label="Study Composer" onNavigate={closeMobileNav} />
-            <SidebarItem to="/dashboard/sessions" icon={<Video className="w-4 h-4" />} label="Sessions" onNavigate={closeMobileNav} />
-            <SidebarItem to="/dashboard/panel" icon={<Users className="w-4 h-4" />} label="Participants" onNavigate={closeMobileNav} />
-            <SidebarItem to="/dashboard/recruitment" icon={<Megaphone className="w-4 h-4" />} label="Campaigns" onNavigate={closeMobileNav} />
+            <SidebarItem
+              to="/dashboard"
+              icon={<LayoutGrid className="w-4 h-4" />}
+              label="Overview"
+              onNavigate={closeMobileNav}
+              end
+            />
+            <SidebarItem
+              to="/dashboard/create"
+              icon={<PlusCircle className="w-4 h-4" />}
+              label="Study Composer"
+              onNavigate={closeMobileNav}
+            />
+            <SidebarItem
+              to="/dashboard/sessions"
+              icon={<Video className="w-4 h-4" />}
+              label="Sessions"
+              onNavigate={closeMobileNav}
+            />
+            <SidebarItem
+              to="/dashboard/panel"
+              icon={<Users className="w-4 h-4" />}
+              label="Customer Panel"
+              onNavigate={closeMobileNav}
+            />
           </nav>
         </div>
 
         <div>
           <p className="px-3 mb-2 text-xs font-medium text-[var(--sys-on-surface-tertiary)]">
-            Operations
+            Vault & Handoff
           </p>
-          <nav aria-label="Operations navigation" className="space-y-0.5">
+          <nav aria-label="Vault and handoff navigation" className="space-y-0.5">
             <SidebarItem
-              to="/dashboard/tasks"
-              icon={<CheckSquare className="w-4 h-4" />}
-              label="Tasks"
-              count={openTasksCount}
+              to="/dashboard/drive"
+              icon={<HardDrive className="w-4 h-4" />}
+              label="Google Drive Vault"
               onNavigate={closeMobileNav}
             />
             <SidebarItem
-              to="/dashboard/inbox"
-              icon={<InboxIcon className="w-4 h-4" />}
-              label="Inbox"
-              count={unreadCount}
+              to="/dashboard/integrations"
+              icon={<Plug className="w-4 h-4" />}
+              label="Integrations"
+              onNavigate={closeMobileNav}
+            />
+            <SidebarItem
+              to="/dashboard/tasks"
+              icon={<CheckSquare className="w-4 h-4" />}
+              label="Action Items"
+              count={openTasksCount}
               onNavigate={closeMobileNav}
             />
             <SidebarItem
               to="/dashboard/settings/team"
               icon={<Settings className="w-4 h-4" />}
-              label="Team Settings"
+              label="Team & Governance"
               onNavigate={closeMobileNav}
             />
           </nav>
         </div>
       </div>
 
-      {/* Bottom Workspace Account & Credits */}
+      {/* Bottom Workspace Storage, Synthesis Hours & Account */}
       <div className="p-3 border-t border-[var(--sys-outline-variant)] space-y-2">
+        {isDemoMode && (
+          <button
+            type="button"
+            onClick={() => void handleUpgradeToGoogleSync()}
+            className="w-full p-2.5 rounded-[var(--sys-radius-md)] bg-[var(--sys-primary-container)] text-[var(--sys-on-primary-container)] text-left text-xs font-semibold flex items-center justify-between gap-2 cursor-pointer hover:opacity-95 transition-opacity"
+          >
+            <span className="inline-flex items-center gap-1.5 truncate">
+              <Cloud className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Connect Google & Cloud Sync</span>
+            </span>
+          </button>
+        )}
+
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
@@ -206,7 +255,7 @@ const DashboardLayout: React.FC = () => {
         <div className="flex items-center justify-between gap-2 px-2 py-1.5">
           <div className="flex items-center gap-2.5 min-w-0">
             <img
-              src={ASSETS.avatarElena}
+              src={avatarSrc}
               alt={displayName}
               referrerPolicy="no-referrer"
               className="w-8 h-8 rounded-[var(--sys-radius-sm)] object-cover border border-[var(--sys-outline-variant)] shrink-0"
@@ -216,7 +265,7 @@ const DashboardLayout: React.FC = () => {
                 {displayName}
               </p>
               <p className="text-[11px] text-[var(--sys-on-surface-tertiary)] truncate">
-                Workspace Lead
+                {isCloudSynced ? 'Firestore UK/EU Synced' : 'Local Demo Preview'}
               </p>
             </div>
           </div>
@@ -296,7 +345,7 @@ const DashboardLayout: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setTimeout(() => setSearchFocused(false), 180)}
-                placeholder="Search studies, people, tasks..."
+                placeholder="Search studies, panelists..."
                 aria-label="Search workspace"
                 className="w-full h-10 pl-9 pr-3 text-xs sys-input"
               />
@@ -327,7 +376,7 @@ const DashboardLayout: React.FC = () => {
                     </ul>
                   ) : (
                     <p className="px-4 py-3 text-xs text-[var(--sys-on-surface-tertiary)]">
-                      No matching studies, participants, or tasks.
+                      No matching studies, panelists, or actions.
                     </p>
                   )}
                 </div>

@@ -5,12 +5,16 @@ import {
   Check,
   CheckSquare,
   Crosshair,
+  ExternalLink,
+  HardDrive,
   Pause,
   Play,
   Plus,
   Video,
 } from 'lucide-react';
 import { useResearch } from '../contexts/ResearchContext';
+import { useAuth } from '../hooks/useAuth';
+import { exportStudyBriefToDrive } from '../services/googleDriveService';
 import { ASSETS, mockThemes, type InsightItem } from '../data/mockData';
 
 const VIDEO_CHAPTERS = [
@@ -48,7 +52,8 @@ const CLICK_HOTSPOTS = [
 
 const ProjectInsights: React.FC = () => {
   const { projectId } = useParams();
-  const { projects, insights, addInsight, promoteInsightToTask } = useResearch();
+  const { projects, insights, addInsight, promoteInsightToTask, logDriveExport } = useResearch();
+  const { driveAccessToken, connectGoogleDrive } = useAuth();
 
   const project = projects.find((p) => p.id === projectId) || projects[0];
   const [severityFilter, setSeverityFilter] = useState<'All' | InsightItem['severity']>('All');
@@ -59,6 +64,40 @@ const ProjectInsights: React.FC = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newSeverity, setNewSeverity] = useState<InsightItem['severity']>('Opportunity');
+  const [exportingDrive, setExportingDrive] = useState(false);
+  const [driveExportLink, setDriveExportLink] = useState<string | null>(null);
+  const [driveError, setDriveError] = useState<string | null>(null);
+
+  const handleExportToDrive = async () => {
+    if (!project) return;
+    setExportingDrive(true);
+    setDriveError(null);
+    setDriveExportLink(null);
+    try {
+      let token = driveAccessToken;
+      if (!token) {
+        token = await connectGoogleDrive();
+      }
+      if (!token) {
+        setDriveError('Google Drive authorization is required to export this study brief.');
+        return;
+      }
+      const created = await exportStudyBriefToDrive(token, project, insights);
+      logDriveExport({
+        driveFileId: created.id,
+        fileName: created.name,
+        mimeType: created.mimeType,
+        action: 'export_brief',
+        studyName: project.name,
+        webViewLink: created.webViewLink || '',
+      });
+      setDriveExportLink(created.webViewLink || '/dashboard/drive');
+    } catch (err) {
+      setDriveError(err instanceof Error ? err.message : 'Failed to export brief to Google Drive.');
+    } finally {
+      setExportingDrive(false);
+    }
+  };
 
   const studyInsights = useMemo(() => {
     const matched = insights.filter((i) => i.projectId === project.id);
@@ -108,7 +147,16 @@ const ProjectInsights: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            disabled={exportingDrive}
+            onClick={() => void handleExportToDrive()}
+            className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs sys-btn-secondary whitespace-nowrap cursor-pointer disabled:opacity-50"
+          >
+            <HardDrive className="w-3.5 h-3.5" />
+            <span>{exportingDrive ? 'Exporting...' : 'Export to Drive'}</span>
+          </button>
           <Link
             to={`/dashboard/projects/${project.id}/session`}
             className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs sys-btn-secondary whitespace-nowrap no-underline"
@@ -126,6 +174,35 @@ const ProjectInsights: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {driveExportLink && (
+        <div
+          role="status"
+          className="p-4 rounded-[var(--sys-radius-md)] border border-[var(--sys-outline-variant)] flex flex-wrap items-center justify-between gap-3 text-xs"
+          style={{ backgroundColor: 'var(--sys-success-bg)', color: 'var(--sys-success-fg)' }}
+        >
+          <span>Compliance & Synthesis Brief saved to your Google Drive.</span>
+          <a
+            href={driveExportLink}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 font-semibold underline"
+          >
+            <span>Open Google Doc</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      )}
+
+      {driveError && (
+        <div
+          role="alert"
+          className="p-4 rounded-[var(--sys-radius-md)] border border-[var(--sys-outline-variant)] text-xs"
+          style={{ backgroundColor: 'var(--sys-danger-bg)', color: 'var(--sys-danger-fg)' }}
+        >
+          {driveError}
+        </div>
+      )}
 
       {/* Inline Add Insight Form */}
       {showNewForm && (

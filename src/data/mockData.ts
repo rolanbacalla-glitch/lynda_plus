@@ -1,10 +1,35 @@
+import heroStudioImg from '../assets/images/hero_research_studio_1795415834003.jpg';
+import checkoutUiImg from '../assets/images/study_checkout_ui_1795415836203.jpg';
+import avatarSarahImg from '../assets/images/avatar_sarah_chen_1795415838235.jpg';
+import avatarMarcusImg from '../assets/images/avatar_marcus_miller_1795415839488.jpg';
+import avatarElenaImg from '../assets/images/avatar_elena_rodriguez_1795415907409.jpg';
+
 export const ASSETS = {
-  heroStudio: '/src/assets/images/hero_research_studio_1795415834003.jpg',
-  checkoutUi: '/src/assets/images/study_checkout_ui_1795415836203.jpg',
-  avatarSarah: '/src/assets/images/avatar_sarah_chen_1795415838235.jpg',
-  avatarMarcus: '/src/assets/images/avatar_marcus_miller_1795415839488.jpg',
-  avatarElena: '/src/assets/images/avatar_elena_rodriguez_1795415907409.jpg',
+  heroStudio: heroStudioImg,
+  checkoutUi: checkoutUiImg,
+  avatarSarah: avatarSarahImg,
+  avatarMarcus: avatarMarcusImg,
+  avatarElena: avatarElenaImg,
 } as const;
+
+export function resolveAvatarUrl(rawUrl: string | undefined, personName?: string): string {
+  const hay = `${rawUrl || ''} ${personName || ''}`.toLowerCase();
+  if (hay.includes('marcus')) return ASSETS.avatarMarcus;
+  if (hay.includes('elena')) return ASSETS.avatarElena;
+  if (hay.includes('sarah')) return ASSETS.avatarSarah;
+  if (
+    rawUrl &&
+    (rawUrl === ASSETS.avatarSarah ||
+      rawUrl === ASSETS.avatarMarcus ||
+      rawUrl === ASSETS.avatarElena ||
+      rawUrl.startsWith('data:') ||
+      rawUrl.startsWith('blob:'))
+  ) {
+    return rawUrl;
+  }
+  return ASSETS.avatarSarah;
+}
+
 
 export type StudyStatus = 'Draft' | 'Live' | 'Completed';
 export type StudyMethod = 'Moderated Interview' | 'First-Click Test' | 'Five-Second Test' | 'Usability Study';

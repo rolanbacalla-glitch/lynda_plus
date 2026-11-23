@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, AlertCircle, ArrowLeft, Moon, Sun, UserCheck } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Moon, ShieldCheck, Sun, UserCheck } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const auth = useAuth();
@@ -14,29 +13,26 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   const getFriendlyErrorMessage = (message: string) => {
-    if (message.includes('auth/api-key-not-valid') || message.includes('API key not valid')) {
-      return 'Live authentication is paused in this preview environment. Use Instant Demo Access below to enter the workspace.';
+    if (message.includes('auth/popup-closed-by-user')) {
+      return 'Google sign-in popup was closed before finishing. Try again or enter Demo Workspace below.';
     }
-    if (message.includes('auth/user-not-found') || message.includes('auth/wrong-password')) {
-      return 'Invalid email or password. Try again or use Instant Demo Access.';
+    if (message.includes('auth/popup-blocked')) {
+      return 'Your browser blocked the Google sign-in popup. Allow popups for this site and try again.';
     }
-    return message || 'Unable to sign in. Please try again or use Instant Demo Access.';
+    if (message.includes('auth/unauthorized-domain')) {
+      return 'This preview domain is still syncing with Firebase Auth. You can use Demo Workspace below right now.';
+    }
+    return message || 'Unable to sign in. Please try again or enter Demo Workspace.';
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleSignIn = async () => {
     try {
       setError('');
       setLoading(true);
-      if (!import.meta.env.VITE_FIREBASE_API_KEY) {
-        await auth.loginAsDemo();
-        navigate('/dashboard');
-        return;
-      }
-      await auth.login(email, password);
+      await auth.signInWithGoogle();
       navigate('/dashboard');
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Check your credentials.';
+      const errorMessage = err instanceof Error ? err.message : String(err);
       setError(getFriendlyErrorMessage(errorMessage));
     } finally {
       setLoading(false);
@@ -82,10 +78,10 @@ const Login: React.FC = () => {
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-[var(--sys-on-surface)]">
-              Sign in to your workspace
+              Sign in to LyndaPlus
             </h1>
-            <p className="text-sm text-[var(--sys-on-surface-secondary)]">
-              Access active studies, participant panels, and synthesis reports.
+            <p className="text-sm text-[var(--sys-on-surface-secondary)] leading-relaxed">
+              Connect with Google to sync studies to sovereign UK/EU Firestore storage and access your Google Drive research vault.
             </p>
           </div>
 
@@ -104,70 +100,41 @@ const Login: React.FC = () => {
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={handleDemoAccess}
-              disabled={loading}
-              className="w-full min-h-[44px] px-5 py-3 text-sm sys-btn-primary flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              <UserCheck className="w-4 h-4" />
-              <span>Enter Demo Workspace Instantly</span>
-            </button>
+            <div className="space-y-3">
+              <GoogleSignInButton
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+                label={loading ? 'Connecting Google...' : 'Sign in with Google'}
+              />
+              <p className="text-xs text-[var(--sys-on-surface-tertiary)] text-center">
+                Enables Cloud Firestore sync (europe-west2) and Google Drive Vault access.
+              </p>
+            </div>
 
             <div className="relative flex items-center">
               <div className="flex-1 border-t border-[var(--sys-outline-variant)]" />
               <span className="px-3 text-xs text-[var(--sys-on-surface-tertiary)]">
-                or sign in with work email
+                or explore locally
               </span>
               <div className="flex-1 border-t border-[var(--sys-outline-variant)]" />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="login-email"
-                  className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]"
-                >
-                  Work Email
-                </label>
-                <input
-                  id="login-email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-11 px-3.5 text-sm sys-input"
-                  placeholder="researcher@company.com"
-                />
-              </div>
+            <button
+              type="button"
+              onClick={handleDemoAccess}
+              disabled={loading}
+              className="w-full min-h-[44px] px-5 py-2.5 text-sm sys-btn-secondary flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>Preview Demo Workspace</span>
+            </button>
 
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="login-password"
-                  className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]"
-                >
-                  Password
-                </label>
-                <input
-                  id="login-password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-11 px-3.5 text-sm sys-input"
-                  placeholder="Enter your password"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full min-h-[44px] px-5 py-2.5 text-sm sys-btn-secondary flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                <span>{loading ? 'Signing in...' : 'Sign In with Email'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
+            <div className="pt-4 border-t border-[var(--sys-outline-variant)] flex items-start gap-2.5 text-xs text-[var(--sys-on-surface-secondary)]">
+              <ShieldCheck className="w-4 h-4 text-[var(--sys-primary)] shrink-0 mt-0.5" />
+              <span>
+                Google Drive tokens are held strictly in browser memory for your active session and never written to local storage.
+              </span>
+            </div>
           </div>
         </div>
       </main>

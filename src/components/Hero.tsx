@@ -5,22 +5,35 @@ import { useAuth } from '../hooks/useAuth';
 import { ASSETS } from '../data/mockData';
 
 const PROOF_METRICS = [
-  { label: 'Median Synthesis Time', value: '1.8 hrs', detail: 'Down from 3.5 days per study' },
-  { label: 'Leading Questions Caught', value: '94%', detail: 'Flagged before participant launch' },
-  { label: 'PII Auto-Redaction', value: '100%', detail: 'In-buffer face & document masking' },
-  { label: 'Readability Standard', value: 'WCAG AAA', detail: '16.2:1 primary surface contrast' },
+  {
+    label: 'Pre-Ingestion PII Masking',
+    value: 'In-Buffer',
+    detail: 'Faces, IBANs & cards blurred before upload',
+  },
+  {
+    label: 'Leading Questions Caught',
+    value: 'Before Launch',
+    detail: 'Automated bias guardrails for PM & design scripts',
+  },
+  {
+    label: 'Sovereign Cloud Region',
+    value: 'europe-west2',
+    detail: 'London Firestore isolation + Google Drive Vault',
+  },
+  {
+    label: 'Stakeholder Access',
+    value: 'Unlimited',
+    detail: 'Zero per-viewer seat tax across product & legal',
+  },
 ];
 
 const Hero: React.FC = () => {
-  const { currentUser, loginAsDemo } = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
 
-  const handleLaunchWorkspace = async () => {
-    if (!currentUser) {
-      await loginAsDemo();
-    }
-    navigate('/dashboard');
+  const handleLaunchWorkspace = () => {
+    navigate(currentUser ? '/dashboard' : '/login');
   };
 
   return (
@@ -31,19 +44,19 @@ const Hero: React.FC = () => {
           <div className="lg:col-span-6 flex flex-col justify-between py-2">
             <div>
               <p className="text-xs font-medium text-[var(--sys-on-surface-tertiary)] mb-5">
-                User Research Workspace · Real-Time Bias Auditing · Automated Synthesis
+                Compliance-First User Research · Client-Side Privacy Shield · Sovereign UK/EU Sync
               </p>
 
-              <h1 className="text-[clamp(2.25rem,4.2vw,3.75rem)] font-bold text-[var(--sys-on-surface)] leading-[1.06] tracking-tight mb-6">
-                Research built for{' '}
+              <h1 className="text-[clamp(2.25rem,4.1vw,3.65rem)] font-bold text-[var(--sys-on-surface)] leading-[1.06] tracking-tight mb-6">
+                Usability research built for{' '}
                 <span className="font-serif italic font-normal text-[var(--sys-primary)]">
-                  clarity, rigor,
+                  regulated
                 </span>{' '}
-                and speed.
+                product teams.
               </h1>
 
               <p className="text-base md:text-lg text-[var(--sys-on-surface-secondary)] leading-relaxed max-w-xl mb-8">
-                Audit interview scripts for observer bias before launch, redact sensitive participant data in real time, and turn recorded sessions into structured product decisions in hours instead of weeks.
+                Test live billing, KYC, and clinical flows with real customers without Legal blocking your recordings. LyndaPlus masks PII inside the participant’s browser before upload, enforces unbiased scripts, and syncs directly with Google Drive and Linear.
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -52,14 +65,14 @@ const Hero: React.FC = () => {
                   onClick={handleLaunchWorkspace}
                   className="inline-flex items-center gap-2 min-h-[44px] px-6 py-3 text-sm sys-btn-primary whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  <span>Launch Interactive Workspace</span>
+                  <span>{currentUser ? 'Open Workspace' : 'Start Free Workspace'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
                 <a
-                  href="#bias-audit"
+                  href="#privacy-shield"
                   className="inline-flex items-center gap-2 min-h-[44px] px-5 py-3 text-sm sys-btn-secondary whitespace-nowrap shrink-0 no-underline"
                 >
-                  Try Live Bias Audit
+                  Test Privacy Shield Live
                 </a>
               </div>
             </div>
@@ -67,12 +80,12 @@ const Hero: React.FC = () => {
             <div className="mt-10 pt-6 border-t border-[var(--sys-outline-variant)] flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-[var(--sys-on-surface-tertiary)]">
               <span className="inline-flex items-center gap-1.5 text-[var(--sys-on-surface-secondary)] font-medium">
                 <ShieldCheck className="w-4 h-4 text-[var(--sys-primary)]" />
-                GDPR & HIPAA Privacy Shield
+                FCA, GDPR & HIPAA Ready
               </span>
               <span aria-hidden="true">·</span>
-              <span>EU & UK Data Residency</span>
+              <span>Google Drive & Linear Native</span>
               <span aria-hidden="true">·</span>
-              <span>No Credit Card Required</span>
+              <span>BYO Panel or Prolific</span>
             </div>
           </div>
 
@@ -81,7 +94,7 @@ const Hero: React.FC = () => {
               {!imgError ? (
                 <img
                   src={ASSETS.heroStudio}
-                  alt="Product designers and UX researchers reviewing mobile onboarding user flows on a studio display"
+                  alt="Product designers and research ops leads reviewing regulated fintech usability flows on a studio display"
                   referrerPolicy="no-referrer"
                   onError={() => setImgError(true)}
                   className="w-full h-full lg:h-full object-cover"
@@ -90,10 +103,10 @@ const Hero: React.FC = () => {
                 <div className="w-full h-full min-h-[320px] flex flex-col items-center justify-center p-8 text-center bg-[var(--sys-surface-container)]">
                   <ShieldCheck className="w-10 h-10 text-[var(--sys-primary)] mb-3" />
                   <p className="text-sm font-semibold text-[var(--sys-on-surface)]">
-                    LyndaPlus Collaborative Research Studio
+                    LyndaPlus Regulated Research Workspace
                   </p>
                   <p className="text-xs text-[var(--sys-on-surface-secondary)] mt-1">
-                    Live script auditing, privacy redaction, and synthesis workspace
+                    In-buffer PII redaction, script bias auditing, and Google Drive Vault
                   </p>
                 </div>
               )}
@@ -111,7 +124,7 @@ const Hero: React.FC = () => {
               <p className="text-xs font-medium text-[var(--sys-on-surface-tertiary)]">
                 {metric.label}
               </p>
-              <p className="text-2xl font-bold text-[var(--sys-on-surface)] mt-1.5 font-mono">
+              <p className="text-xl sm:text-2xl font-bold text-[var(--sys-on-surface)] mt-1.5 font-mono">
                 {metric.value}
               </p>
               <p className="text-xs text-[var(--sys-on-surface-secondary)] mt-1">

@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import type { IdTokenResult, User } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  GoogleAuthProvider,
-  FacebookAuthProvider,
-  OAuthProvider,
-  signInWithPopup,
-} from 'firebase/auth';
-import { auth } from '../firebase';
+  auth,
+  clearCachedDriveAccessToken,
+  getCachedDriveAccessToken,
+  signInWithGoogleAndDrive,
+  signOutFirebase,
+} from '../firebase';
 import { AuthContext } from './AuthContextInstance';
 
 const DEMO_USER_KEY = 'lynda_plus_demo_user';
@@ -28,49 +26,63 @@ function readPersistedDemoUser(): User | null {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(() => readPersistedDemoUser());
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => Boolean(readPersistedDemoUser()));
   const [loading, setLoading] = useState<boolean>(() => !readPersistedDemoUser());
+  // Strictly in-memory OAuth access token (never persisted in localStorage/sessionStorage)
+  const [driveAccessToken, setDriveAccessToken] = useState<string | null>(() =>
+    getCachedDriveAccessToken()
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user || !window.localStorage.getItem(DEMO_USER_KEY)) {
+      if (user) {
+        window.localStorage.removeItem(DEMO_USER_KEY);
         setCurrentUser(user);
+        setIsDemoMode(false);
+        setDriveAccessToken(getCachedDriveAccessToken());
+        setLoading(false);
+      } else if (!window.localStorage.getItem(DEMO_USER_KEY)) {
+        clearCachedDriveAccessToken();
+        setDriveAccessToken(null);
+        setCurrentUser(null);
+        setIsDemoMode(false);
         setLoading(false);
       }
     });
     return unsubscribe;
   }, []);
 
-  const login = async (email: string, pass: string) => {
+  const signInWithGoogle = async () => {
     window.localStorage.removeItem(DEMO_USER_KEY);
-    await signInWithEmailAndPassword(auth, email, pass);
+    const result = await signInWithGoogleAndDrive();
+    setCurrentUser(result.user);
+    setIsDemoMode(false);
+    setDriveAccessToken(result.accessToken);
+    setLoading(false);
+    return result;
+  };
+
+  const connectGoogleDrive = async (): Promise<string | null> => {
+    const result = await signInWithGoogle();
+    return result.accessToken;
+  };
+
+  const clearDriveToken = () => {
+    clearCachedDriveAccessToken();
+    setDriveAccessToken(null);
   };
 
   const logout = async () => {
     window.localStorage.removeItem(DEMO_USER_KEY);
+    clearCachedDriveAccessToken();
+    setDriveAccessToken(null);
     try {
-      await signOut(auth);
+      await signOutFirebase();
     } catch {
-      // Ignore Firebase signOut error when running in demo mode
+      // Ignore Firebase signOut error in demo mode
     }
     setCurrentUser(null);
-  };
-
-  const signInWithGoogle = async () => {
-    window.localStorage.removeItem(DEMO_USER_KEY);
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-  };
-
-  const signInWithFacebook = async () => {
-    window.localStorage.removeItem(DEMO_USER_KEY);
-    const provider = new FacebookAuthProvider();
-    await signInWithPopup(auth, provider);
-  };
-
-  const signInWithApple = async () => {
-    window.localStorage.removeItem(DEMO_USER_KEY);
-    const provider = new OAuthProvider('apple.com');
-    await signInWithPopup(auth, provider);
+    setIsDemoMode(false);
   };
 
   const simulateDemoLogin = () => {
@@ -86,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       tenantId: null,
       phoneNumber: null,
       photoURL: null,
-      providerId: 'firebase',
+      providerId: 'demo',
       delete: () => Promise.resolve(),
       getIdToken: () => Promise.resolve(''),
       getIdTokenResult: () => Promise.resolve({} as IdTokenResult),
@@ -95,7 +107,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } as unknown as User;
 
     window.localStorage.setItem(DEMO_USER_KEY, JSON.stringify(demoUser));
+    clearCachedDriveAccessToken();
+    setDriveAccessToken(null);
     setCurrentUser(demoUser);
+    setIsDemoMode(true);
     setLoading(false);
     return Promise.resolve();
   };
@@ -103,11 +118,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     currentUser,
     loading,
-    login,
+    isDemoMode,
+    driveAccessToken,
     logout,
     signInWithGoogle,
-    signInWithFacebook,
-    signInWithApple,
+    connectGoogleDrive,
+    clearDriveToken,
     loginAsDemo: simulateDemoLogin,
   };
 

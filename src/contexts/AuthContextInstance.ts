@@ -4,11 +4,12 @@ import type { User } from 'firebase/auth';
 export interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
+  isDemoMode: boolean;
+  driveAccessToken: string | null;
   logout: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  signInWithFacebook: () => Promise<void>;
-  signInWithApple: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ user: User; accessToken: string | null }>;
+  connectGoogleDrive: () => Promise<string | null>;
+  clearDriveToken: () => void;
   loginAsDemo: () => Promise<void>;
 }
 
