@@ -1,29 +1,71 @@
 import React, { useState } from 'react';
-import { Moon, ShieldCheck, Sun, UserPlus, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  ArrowUpRight,
+  Lock,
+  Moon,
+  ShieldCheck,
+  Sun,
+  Trash2,
+  UserPlus,
+  X,
+} from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import { useResearch } from '../contexts/ResearchContext';
 import { useTheme } from '../contexts/ThemeContext';
 import type { TeamMember } from '../data/mockData';
 
 const ROLE_GUIDE: { name: TeamMember['role']; desc: string }[] = [
-  { name: 'Admin', desc: 'Manage billing, SSO policies, data residency, and workspace seats.' },
-  { name: 'Editor', desc: 'Create studies, moderate live sessions, and promote insights to tasks.' },
-  { name: 'Viewer', desc: 'Watch highlight reels, inspect synthesis reports, and leave comments.' },
+  {
+    name: 'Admin',
+    desc: 'Full workspace authority: manage governance policies, data residency, lifecycle overrides, seats, and delegated admins.',
+  },
+  {
+    name: 'Editor',
+    desc: 'Create studies, moderate live sessions, and promote insights to tracked action items.',
+  },
+  {
+    name: 'Viewer',
+    desc: 'Watch highlight reels, inspect synthesis reports, and leave comments.',
+  },
 ];
 
 const TeamSettings: React.FC = () => {
-  const { teamMembers, inviteTeamMember, updateTeamRole } = useResearch();
+  const { isAdmin, isRootAdmin, currentUser } = useAuth();
+  const {
+    teamMembers,
+    workspaceSettings,
+    inviteTeamMember,
+    updateTeamRole,
+    removeTeamMember,
+    updateWorkspaceSettings,
+  } = useResearch();
   const { theme, setTheme } = useTheme();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<TeamMember['role']>('Editor');
+  const [savingPolicy, setSavingPolicy] = useState(false);
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail.trim()) return;
+    if (!isAdmin || !inviteEmail.trim()) return;
     inviteTeamMember(inviteEmail.trim(), inviteRole);
     setInviteEmail('');
     setInviteRole('Editor');
     setIsInviteOpen(false);
+  };
+
+  const handleTogglePolicy = async (
+    key: 'samlSsoEnforced' | 'privacyShieldDefault',
+    next: boolean
+  ) => {
+    if (!isAdmin) return;
+    setSavingPolicy(true);
+    try {
+      await updateWorkspaceSettings({ [key]: next });
+    } finally {
+      setSavingPolicy(false);
+    }
   };
 
   return (
@@ -38,14 +80,55 @@ const TeamSettings: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsInviteOpen(true)}
-          className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs sys-btn-primary whitespace-nowrap shrink-0 cursor-pointer self-start sm:self-auto"
-        >
-          <UserPlus className="w-3.5 h-3.5" />
-          <span>Invite Member</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
+          {isAdmin && (
+            <Link
+              to="/dashboard/admin"
+              className="inline-flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-xs sys-btn-secondary whitespace-nowrap no-underline"
+            >
+              <span>Admin Console</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setIsInviteOpen(true)}
+              className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs sys-btn-primary whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Invite Member</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Role Authority Banner */}
+      <div className="px-4 py-3 rounded-[var(--sys-radius-md)] sys-surface-lowest flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-2.5">
+          {isAdmin ? (
+            <ShieldCheck className="w-4 h-4 text-[var(--sys-primary)] shrink-0" />
+          ) : (
+            <Lock className="w-4 h-4 text-[var(--sys-on-surface-tertiary)] shrink-0" />
+          )}
+          <span className="text-[var(--sys-on-surface-secondary)]">
+            {isAdmin ? (
+              <>
+                Signed in as{' '}
+                <strong className="text-[var(--sys-on-surface)]">
+                  {isRootAdmin ? 'Root Administrator' : 'Workspace Administrator'}
+                </strong>{' '}
+                ({currentUser?.email}). You have full authority over workspace roles, security
+                policies, and records.
+              </>
+            ) : (
+              <>
+                Workspace governance controls are read-only for standard accounts. Sign in with an
+                authorised administrator account to modify roles or policies.
+              </>
+            )}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -81,19 +164,36 @@ const TeamSettings: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <select
-                    value={member.role}
-                    onChange={(e) =>
-                      updateTeamRole(member.id, e.target.value as TeamMember['role'])
-                    }
-                    aria-label={`Change role for ${member.name}`}
-                    className="h-9 px-3 text-xs font-semibold sys-input"
-                  >
-                    <option value="Admin">Admin</option>
-                    <option value="Editor">Editor</option>
-                    <option value="Viewer">Viewer</option>
-                  </select>
+                <div className="flex items-center gap-2.5 shrink-0">
+                  {isAdmin ? (
+                    <>
+                      <select
+                        value={member.role}
+                        onChange={(e) =>
+                          updateTeamRole(member.id, e.target.value as TeamMember['role'])
+                        }
+                        aria-label={`Change role for ${member.name}`}
+                        className="h-9 px-3 text-xs font-semibold sys-input"
+                      >
+                        <option value="Admin">Admin</option>
+                        <option value="Editor">Editor</option>
+                        <option value="Viewer">Viewer</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => removeTeamMember(member.id)}
+                        aria-label={`Remove ${member.name}`}
+                        title={`Remove ${member.name}`}
+                        className="w-9 h-9 rounded-[var(--sys-radius-sm)] border border-[var(--sys-outline-variant)] inline-flex items-center justify-center text-[var(--sys-danger-fg)] hover:bg-[var(--sys-danger-bg)] transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="text-xs font-mono font-semibold text-[var(--sys-on-surface-secondary)] px-2.5 py-1.5 rounded-[var(--sys-radius-sm)] bg-[var(--sys-surface-low)] border border-[var(--sys-outline-variant)]">
+                      {member.role}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -152,29 +252,87 @@ const TeamSettings: React.FC = () => {
               <span>Security Governance</span>
             </h2>
             <div className="text-xs space-y-2 text-[var(--sys-on-surface-secondary)]">
-              <div className="flex justify-between py-1.5 border-b border-[var(--sys-outline-variant)]">
+              <div className="flex items-center justify-between py-1.5 border-b border-[var(--sys-outline-variant)]">
                 <span>SAML SSO Enforcement</span>
-                <span className="font-mono font-semibold" style={{ color: 'var(--sys-success-fg)' }}>
-                  Active
-                </span>
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    disabled={savingPolicy}
+                    onClick={() =>
+                      void handleTogglePolicy(
+                        'samlSsoEnforced',
+                        !workspaceSettings.samlSsoEnforced
+                      )
+                    }
+                    className="font-mono font-semibold underline cursor-pointer"
+                    style={{
+                      color: workspaceSettings.samlSsoEnforced
+                        ? 'var(--sys-success-fg)'
+                        : 'var(--sys-on-surface-tertiary)',
+                    }}
+                  >
+                    {workspaceSettings.samlSsoEnforced ? 'Active' : 'Disabled'}
+                  </button>
+                ) : (
+                  <span
+                    className="font-mono font-semibold"
+                    style={{
+                      color: workspaceSettings.samlSsoEnforced
+                        ? 'var(--sys-success-fg)'
+                        : 'var(--sys-on-surface-tertiary)',
+                    }}
+                  >
+                    {workspaceSettings.samlSsoEnforced ? 'Active' : 'Disabled'}
+                  </span>
+                )}
               </div>
-              <div className="flex justify-between py-1.5 border-b border-[var(--sys-outline-variant)]">
+              <div className="flex items-center justify-between py-1.5 border-b border-[var(--sys-outline-variant)]">
                 <span>Privacy Shield Default</span>
-                <span className="font-mono font-semibold" style={{ color: 'var(--sys-success-fg)' }}>
-                  Enabled
-                </span>
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    disabled={savingPolicy}
+                    onClick={() =>
+                      void handleTogglePolicy(
+                        'privacyShieldDefault',
+                        !workspaceSettings.privacyShieldDefault
+                      )
+                    }
+                    className="font-mono font-semibold underline cursor-pointer"
+                    style={{
+                      color: workspaceSettings.privacyShieldDefault
+                        ? 'var(--sys-success-fg)'
+                        : 'var(--sys-on-surface-tertiary)',
+                    }}
+                  >
+                    {workspaceSettings.privacyShieldDefault ? 'Enabled' : 'Disabled'}
+                  </button>
+                ) : (
+                  <span
+                    className="font-mono font-semibold"
+                    style={{
+                      color: workspaceSettings.privacyShieldDefault
+                        ? 'var(--sys-success-fg)'
+                        : 'var(--sys-on-surface-tertiary)',
+                    }}
+                  >
+                    {workspaceSettings.privacyShieldDefault ? 'Enabled' : 'Disabled'}
+                  </span>
+                )}
               </div>
-              <div className="flex justify-between py-1.5">
+              <div className="flex items-center justify-between py-1.5">
                 <span>Data Residency</span>
-                <span className="font-mono font-semibold text-[var(--sys-on-surface)]">EU-West</span>
+                <span className="font-mono font-semibold text-[var(--sys-on-surface)]">
+                  {workspaceSettings.dataResidency}
+                </span>
               </div>
             </div>
           </section>
         </div>
       </div>
 
-      {/* Invite Modal */}
-      {isInviteOpen && (
+      {/* Invite Modal (Admin only) */}
+      {isAdmin && isInviteOpen && (
         <div
           role="dialog"
           aria-modal="true"
@@ -218,7 +376,7 @@ const TeamSettings: React.FC = () => {
                   required
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="colleague@company.com"
+                  placeholder="colleague@company.co.uk"
                   className="w-full h-11 px-3.5 text-sm sys-input"
                 />
               </div>

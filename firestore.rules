@@ -35,8 +35,17 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == ownerId;
     }
 
+    // O(1) token-only root admin check (safe in allow list with zero DB reads)
     function isBootstrappedAdmin() {
-      return isVerifiedUser() && request.auth.token.email == 'rolan.bacalla@gmail.com';
+      return isVerifiedUser() &&
+        request.auth.token.email is string &&
+        request.auth.token.email.lower() == 'rolan.bacalla@gmail.com';
+    }
+
+    // Full admin check for single-document reads and all writes (root + delegated admins)
+    function isAdmin() {
+      return isBootstrappedAdmin() ||
+        (isVerifiedUser() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
     }
 
     function isValidString(val, minLen, maxLen) {
@@ -64,7 +73,7 @@ service cloud.firestore {
           'objective', 'primaryQuestion', 'privacyShieldEnabled', 'createdAt', 'updatedAt'
         ]) &&
         isValidId(data.ownerId) &&
-        data.ownerId == request.auth.uid &&
+        (data.ownerId == request.auth.uid || isAdmin()) &&
         isValidString(data.name, 1, 160) &&
         data.method in ['Moderated Interview', 'First-Click Test', 'Five-Second Test', 'Usability Study'] &&
         data.status in ['Draft', 'Live', 'Completed'] &&
@@ -93,7 +102,7 @@ service cloud.firestore {
           'promotedToTask', 'createdAt', 'updatedAt'
         ]) &&
         isValidId(data.ownerId) &&
-        data.ownerId == request.auth.uid &&
+        (data.ownerId == request.auth.uid || isAdmin()) &&
         isValidId(data.projectId) &&
         isValidString(data.title, 1, 200) &&
         isValidString(data.description, 1, 1500) &&
@@ -119,7 +128,7 @@ service cloud.firestore {
           'summary', 'createdAt', 'updatedAt'
         ]) &&
         isValidId(data.ownerId) &&
-        data.ownerId == request.auth.uid &&
+        (data.ownerId == request.auth.uid || isAdmin()) &&
         isValidId(data.projectId) &&
         isValidString(data.studyName, 1, 160) &&
         isValidString(data.participantName, 1, 120) &&
@@ -146,7 +155,7 @@ service cloud.firestore {
           'tags', 'recentNote', 'createdAt', 'updatedAt'
         ]) &&
         isValidId(data.ownerId) &&
-        data.ownerId == request.auth.uid &&
+        (data.ownerId == request.auth.uid || isAdmin()) &&
         isValidString(data.name, 1, 120) &&
         data.age is number && data.age >= 18 && data.age <= 120 &&
         isValidString(data.role, 1, 120) &&
@@ -175,7 +184,7 @@ service cloud.firestore {
           'priority', 'completed', 'createdAt', 'updatedAt'
         ]) &&
         isValidId(data.ownerId) &&
-        data.ownerId == request.auth.uid &&
+        (data.ownerId == request.auth.uid || isAdmin()) &&
         isValidString(data.title, 1, 240) &&
         isValidString(data.studyName, 1, 160) &&
         isValidString(data.assignee, 1, 120) &&
@@ -196,7 +205,7 @@ service cloud.firestore {
           'action', 'studyName', 'webViewLink', 'createdAt'
         ]) &&
         isValidId(data.ownerId) &&
-        data.ownerId == request.auth.uid &&
+        (data.ownerId == request.auth.uid || isAdmin()) &&
         isValidString(data.driveFileId, 1, 200) &&
         isValidString(data.fileName, 1, 240) &&
         isValidString(data.mimeType, 1, 160) &&
@@ -206,24 +215,63 @@ service cloud.firestore {
         data.createdAt is timestamp;
     }
 
+    function isValidWorkspaceSettings(data) {
+      return data.keys().hasAll([
+          'samlSsoEnforced', 'privacyShieldDefault', 'dataResidency',
+          'britishSpellingDefault', 'autoCorrectEnabledDefault',
+          'synthesisHoursPool', 'updatedBy', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'samlSsoEnforced', 'privacyShieldDefault', 'dataResidency',
+          'britishSpellingDefault', 'autoCorrectEnabledDefault',
+          'synthesisHoursPool', 'updatedBy', 'updatedAt'
+        ]) &&
+        data.samlSsoEnforced is bool &&
+        data.privacyShieldDefault is bool &&
+        data.dataResidency in ['EU-West (London)', 'EU-Central (Frankfurt)', 'UK-South'] &&
+        data.britishSpellingDefault is bool &&
+        data.autoCorrectEnabledDefault is bool &&
+        data.synthesisHoursPool is number &&
+        data.synthesisHoursPool >= 0 &&
+        data.synthesisHoursPool <= 10000 &&
+        isValidString(data.updatedBy, 1, 120) &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidAdminAccount(data, adminUid) {
+      return data.keys().hasAll([
+          'uid', 'email', 'displayName', 'role', 'grantedBy', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'uid', 'email', 'displayName', 'role', 'grantedBy', 'createdAt'
+        ]) &&
+        isValidId(data.uid) &&
+        data.uid == adminUid &&
+        isValidString(data.email, 3, 160) &&
+        isValidString(data.displayName, 1, 120) &&
+        data.role == 'Admin' &&
+        isValidString(data.grantedBy, 3, 160) &&
+        data.createdAt is timestamp;
+    }
+
     // -------------------------------------------------------------------------
     // Collection Rules
     // -------------------------------------------------------------------------
     match /projects/{projectId} {
-      allow get: if isSignedIn() && isValidId(projectId) && isOwner(existing().ownerId);
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(projectId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isBootstrappedAdmin());
       allow create: if isVerifiedUser() && isValidId(projectId) &&
         isValidProject(incoming()) &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time;
       allow update: if isVerifiedUser() && isValidId(projectId) &&
         isValidProject(incoming()) &&
-        isOwner(existing().ownerId) &&
+        (isOwner(existing().ownerId) || isAdmin()) &&
         incoming().ownerId == existing().ownerId &&
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
         (
-          isBootstrappedAdmin() ||
+          isAdmin() ||
           (
             existing().status != 'Completed' &&
             (
@@ -236,51 +284,51 @@ service cloud.firestore {
             )
           )
         );
-      allow delete: if isVerifiedUser() && isValidId(projectId) && isOwner(existing().ownerId);
+      allow delete: if isVerifiedUser() && isValidId(projectId) && (isOwner(existing().ownerId) || isAdmin());
     }
 
     match /insights/{insightId} {
-      allow get: if isSignedIn() && isValidId(insightId) && isOwner(existing().ownerId);
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(insightId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isBootstrappedAdmin());
       allow create: if isVerifiedUser() && isValidId(insightId) &&
         isValidInsight(incoming()) &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time &&
-        ownsProject(incoming().projectId);
+        (ownsProject(incoming().projectId) || isAdmin());
       allow update: if isVerifiedUser() && isValidId(insightId) &&
         isValidInsight(incoming()) &&
-        isOwner(existing().ownerId) &&
+        (isOwner(existing().ownerId) || isAdmin()) &&
         incoming().ownerId == existing().ownerId &&
         incoming().projectId == existing().projectId &&
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
         (
-          isBootstrappedAdmin() ||
+          isAdmin() ||
           // Action: Promote insight to tracked task/handoff
           incoming().diff(existing()).affectedKeys().hasOnly(['promotedToTask', 'updatedAt']) ||
           // Action: Edit insight details
           incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'severity', 'mentions', 'updatedAt'])
         );
-      allow delete: if isVerifiedUser() && isValidId(insightId) && isOwner(existing().ownerId);
+      allow delete: if isVerifiedUser() && isValidId(insightId) && (isOwner(existing().ownerId) || isAdmin());
     }
 
     match /sessions/{sessionId} {
-      allow get: if isSignedIn() && isValidId(sessionId) && isOwner(existing().ownerId);
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(sessionId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isBootstrappedAdmin());
       allow create: if isVerifiedUser() && isValidId(sessionId) &&
         isValidSession(incoming()) &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time &&
-        ownsProject(incoming().projectId);
+        (ownsProject(incoming().projectId) || isAdmin());
       allow update: if isVerifiedUser() && isValidId(sessionId) &&
         isValidSession(incoming()) &&
-        isOwner(existing().ownerId) &&
+        (isOwner(existing().ownerId) || isAdmin()) &&
         incoming().ownerId == existing().ownerId &&
         incoming().projectId == existing().projectId &&
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
         (
-          isBootstrappedAdmin() ||
+          isAdmin() ||
           (
             existing().status != 'Completed' &&
             (
@@ -291,63 +339,88 @@ service cloud.firestore {
             )
           )
         );
-      allow delete: if isVerifiedUser() && isValidId(sessionId) && isOwner(existing().ownerId);
+      allow delete: if isVerifiedUser() && isValidId(sessionId) && (isOwner(existing().ownerId) || isAdmin());
     }
 
     match /participants/{participantId} {
-      allow get: if isSignedIn() && isValidId(participantId) && isOwner(existing().ownerId);
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(participantId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isBootstrappedAdmin());
       allow create: if isVerifiedUser() && isValidId(participantId) &&
         isValidParticipant(incoming()) &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time;
       allow update: if isVerifiedUser() && isValidId(participantId) &&
         isValidParticipant(incoming()) &&
-        isOwner(existing().ownerId) &&
+        (isOwner(existing().ownerId) || isAdmin()) &&
         incoming().ownerId == existing().ownerId &&
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
         (
-          isBootstrappedAdmin() ||
+          isAdmin() ||
           // Action: Toggle shortlist flag
           incoming().diff(existing()).affectedKeys().hasOnly(['shortlisted', 'updatedAt']) ||
-          // Action: Update panelist notes & status
+          // Action: Update panellist notes & status
           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'recentNote', 'tags', 'updatedAt'])
         );
-      allow delete: if isVerifiedUser() && isValidId(participantId) && isOwner(existing().ownerId);
+      allow delete: if isVerifiedUser() && isValidId(participantId) && (isOwner(existing().ownerId) || isAdmin());
     }
 
     match /tasks/{taskId} {
-      allow get: if isSignedIn() && isValidId(taskId) && isOwner(existing().ownerId);
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(taskId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isBootstrappedAdmin());
       allow create: if isVerifiedUser() && isValidId(taskId) &&
         isValidTask(incoming()) &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time;
       allow update: if isVerifiedUser() && isValidId(taskId) &&
         isValidTask(incoming()) &&
-        isOwner(existing().ownerId) &&
+        (isOwner(existing().ownerId) || isAdmin()) &&
         incoming().ownerId == existing().ownerId &&
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
         (
-          isBootstrappedAdmin() ||
+          isAdmin() ||
           // Action: Toggle task completion
           incoming().diff(existing()).affectedKeys().hasOnly(['completed', 'updatedAt']) ||
           // Action: Edit task priority/assignee/dueDate
           incoming().diff(existing()).affectedKeys().hasOnly(['title', 'assignee', 'dueDate', 'priority', 'updatedAt'])
         );
-      allow delete: if isVerifiedUser() && isValidId(taskId) && isOwner(existing().ownerId);
+      allow delete: if isVerifiedUser() && isValidId(taskId) && (isOwner(existing().ownerId) || isAdmin());
     }
 
     match /driveExports/{exportId} {
-      allow get: if isSignedIn() && isValidId(exportId) && isOwner(existing().ownerId);
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow get: if isSignedIn() && isValidId(exportId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isBootstrappedAdmin());
       allow create: if isVerifiedUser() && isValidId(exportId) &&
         isValidDriveExport(incoming()) &&
         incoming().createdAt == request.time;
       allow update: if false;
-      allow delete: if isVerifiedUser() && isValidId(exportId) && isOwner(existing().ownerId);
+      allow delete: if isVerifiedUser() && isValidId(exportId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    match /workspaceSettings/{settingId} {
+      allow get: if isSignedIn() && isValidId(settingId);
+      allow list: if isBootstrappedAdmin();
+      allow create: if isAdmin() && isValidId(settingId) &&
+        isValidWorkspaceSettings(incoming()) &&
+        incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(settingId) &&
+        isValidWorkspaceSettings(incoming()) &&
+        incoming().updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /admins/{adminUid} {
+      allow get: if isSignedIn() && isValidId(adminUid) && (request.auth.uid == adminUid || isAdmin());
+      allow list: if isBootstrappedAdmin();
+      allow create: if isAdmin() && isValidId(adminUid) &&
+        isValidAdminAccount(incoming(), adminUid) &&
+        incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(adminUid) &&
+        isValidAdminAccount(incoming(), adminUid) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(adminUid);
     }
   }
 }

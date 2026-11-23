@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   onSnapshot,
@@ -35,12 +36,35 @@ import {
 
 export interface DriveAuditRecord {
   id: string;
+  ownerId?: string;
   driveFileId: string;
   fileName: string;
   mimeType: string;
   action: 'export_brief' | 'import_script' | 'attach_artifact';
   studyName: string;
   webViewLink: string;
+  createdAtLabel: string;
+}
+
+export type DataResidencyRegion = 'EU-West (London)' | 'EU-Central (Frankfurt)' | 'UK-South';
+
+export interface WorkspaceSettings {
+  samlSsoEnforced: boolean;
+  privacyShieldDefault: boolean;
+  dataResidency: DataResidencyRegion;
+  britishSpellingDefault: boolean;
+  autoCorrectEnabledDefault: boolean;
+  synthesisHoursPool: number;
+  updatedBy: string;
+  updatedAtLabel: string;
+}
+
+export interface AdminAccount {
+  uid: string;
+  email: string;
+  displayName: string;
+  role: 'Admin';
+  grantedBy: string;
   createdAtLabel: string;
 }
 
@@ -54,29 +78,46 @@ interface ResearchContextValue {
   inbox: InboxMessage[];
   campaigns: RecruitingCampaign[];
   driveExports: DriveAuditRecord[];
+  workspaceSettings: WorkspaceSettings;
+  adminAccounts: AdminAccount[];
   credits: number;
   isCloudSynced: boolean;
   cloudError: string | null;
   addCredits: (hours: number) => void;
+  setSynthesisHoursPool: (hours: number) => Promise<void>;
   addProject: (project: Omit<Project, 'id' | 'lastUpdated'>) => Project;
+  updateProjectStatus: (projectId: string, status: Project['status']) => void;
+  deleteProject: (projectId: string) => void;
   addInsight: (insight: Omit<InsightItem, 'id' | 'timestamp'>) => void;
+  deleteInsight: (insightId: string) => void;
   promoteInsightToTask: (insightId: string) => void;
   toggleParticipantShortlist: (participantId: string) => void;
   addParticipant: (
     p: Omit<Participant, 'id' | 'joined' | 'avatar' | 'sessionsCompleted' | 'shortlisted'>
   ) => void;
+  deleteParticipant: (participantId: string) => void;
   addSession: (s: Omit<ResearchSession, 'id' | 'participantAvatar' | 'highlightsCount'>) => void;
+  updateSessionStatus: (sessionId: string, status: ResearchSession['status']) => void;
+  deleteSession: (sessionId: string) => void;
   addTask: (t: Omit<ResearchTask, 'id' | 'completed'>) => void;
   toggleTask: (taskId: string) => void;
+  deleteTask: (taskId: string) => void;
   markThreadRead: (threadId: string) => void;
   replyToThread: (threadId: string, body: string) => void;
   addInboxThread: (recipient: string, subject: string, studyName: string, body: string) => void;
   inviteTeamMember: (email: string, role: TeamMember['role']) => void;
   updateTeamRole: (memberId: string, role: TeamMember['role']) => void;
+  removeTeamMember: (memberId: string) => void;
   addCampaign: (
     campaign: Omit<RecruitingCampaign, 'id' | 'code' | 'invited' | 'screened' | 'confirmed'>
   ) => void;
   logDriveExport: (record: Omit<DriveAuditRecord, 'id' | 'createdAtLabel'>) => void;
+  deleteDriveExport: (exportId: string) => void;
+  updateWorkspaceSettings: (
+    patch: Partial<Omit<WorkspaceSettings, 'updatedBy' | 'updatedAtLabel'>>
+  ) => Promise<void>;
+  grantAdminAccess: (uid: string, email: string, displayName: string) => Promise<void>;
+  revokeAdminAccess: (uid: string) => Promise<void>;
 }
 
 const STORAGE_KEY = 'lyndaplus_workspace_state_v3';
@@ -93,8 +134,21 @@ interface StoredState {
   inbox: InboxMessage[];
   campaigns: RecruitingCampaign[];
   driveExports: DriveAuditRecord[];
+  workspaceSettings: WorkspaceSettings;
+  adminAccounts: AdminAccount[];
   credits: number;
 }
+
+const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettings = {
+  samlSsoEnforced: true,
+  privacyShieldDefault: true,
+  dataResidency: 'EU-West (London)',
+  britishSpellingDefault: true,
+  autoCorrectEnabledDefault: true,
+  synthesisHoursPool: 12.4,
+  updatedBy: 'rolan.bacalla@gmail.com',
+  updatedAtLabel: 'Default policy',
+};
 
 const DEFAULT_STATE: StoredState = {
   projects: mockProjects,
@@ -106,6 +160,8 @@ const DEFAULT_STATE: StoredState = {
   inbox: mockInboxMessages,
   campaigns: mockCampaigns,
   driveExports: [],
+  workspaceSettings: DEFAULT_WORKSPACE_SETTINGS,
+  adminAccounts: [],
   credits: 12.4,
 };
 
@@ -149,6 +205,10 @@ function loadLocalState(): StoredState {
       inbox,
       campaigns: parsed.campaigns?.length ? parsed.campaigns : DEFAULT_STATE.campaigns,
       driveExports: Array.isArray(parsed.driveExports) ? parsed.driveExports : [],
+      workspaceSettings: parsed.workspaceSettings
+        ? { ...DEFAULT_WORKSPACE_SETTINGS, ...parsed.workspaceSettings }
+        : DEFAULT_WORKSPACE_SETTINGS,
+      adminAccounts: Array.isArray(parsed.adminAccounts) ? parsed.adminAccounts : [],
       credits: typeof parsed.credits === 'number' ? parsed.credits : DEFAULT_STATE.credits,
     };
   } catch {
@@ -157,7 +217,7 @@ function loadLocalState(): StoredState {
 }
 
 export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser, isDemoMode } = useAuth();
+  const { currentUser, isDemoMode, isAdmin, isRootAdmin } = useAuth();
   const [state, setState] = useState<StoredState>(loadLocalState);
   const [cloudError, setCloudError] = useState<string | null>(null);
   const seededUidRef = useRef<string | null>(null);
@@ -307,14 +367,35 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const unsubs: (() => void)[] = [];
 
+    // Root Admin (rolan.bacalla@gmail.com) sees all workspace records; standard users stay owner-scoped
+    const projectsQuery = isRootAdmin
+      ? query(collection(db, 'projects'))
+      : query(collection(db, 'projects'), where('ownerId', '==', activeUid));
+    const insightsQuery = isRootAdmin
+      ? query(collection(db, 'insights'))
+      : query(collection(db, 'insights'), where('ownerId', '==', activeUid));
+    const sessionsQuery = isRootAdmin
+      ? query(collection(db, 'sessions'))
+      : query(collection(db, 'sessions'), where('ownerId', '==', activeUid));
+    const participantsQuery = isRootAdmin
+      ? query(collection(db, 'participants'))
+      : query(collection(db, 'participants'), where('ownerId', '==', activeUid));
+    const tasksQuery = isRootAdmin
+      ? query(collection(db, 'tasks'))
+      : query(collection(db, 'tasks'), where('ownerId', '==', activeUid));
+    const driveExportsQuery = isRootAdmin
+      ? query(collection(db, 'driveExports'))
+      : query(collection(db, 'driveExports'), where('ownerId', '==', activeUid));
+
     unsubs.push(
       onSnapshot(
-        query(collection(db, 'projects'), where('ownerId', '==', activeUid)),
+        projectsQuery,
         (snap) => {
           const items: Project[] = snap.docs.map((d) => {
             const data = d.data();
             return {
               id: d.id,
+              ownerId: typeof data.ownerId === 'string' ? data.ownerId : undefined,
               name: String(data.name || 'Untitled Study'),
               method: (data.method as Project['method']) || 'Usability Study',
               status: (data.status as Project['status']) || 'Draft',
@@ -340,12 +421,13 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     unsubs.push(
       onSnapshot(
-        query(collection(db, 'insights'), where('ownerId', '==', activeUid)),
+        insightsQuery,
         (snap) => {
           const items: InsightItem[] = snap.docs.map((d) => {
             const data = d.data();
             return {
               id: d.id,
+              ownerId: typeof data.ownerId === 'string' ? data.ownerId : undefined,
               projectId: String(data.projectId || ''),
               title: String(data.title || ''),
               description: String(data.description || ''),
@@ -367,13 +449,14 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     unsubs.push(
       onSnapshot(
-        query(collection(db, 'sessions'), where('ownerId', '==', activeUid)),
+        sessionsQuery,
         (snap) => {
           const items: ResearchSession[] = snap.docs.map((d) => {
             const data = d.data();
             const pName = String(data.participantName || 'Participant');
             return {
               id: d.id,
+              ownerId: typeof data.ownerId === 'string' ? data.ownerId : undefined,
               projectId: String(data.projectId || ''),
               studyName: String(data.studyName || ''),
               participantName: pName,
@@ -397,13 +480,14 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     unsubs.push(
       onSnapshot(
-        query(collection(db, 'participants'), where('ownerId', '==', activeUid)),
+        participantsQuery,
         (snap) => {
           const items: Participant[] = snap.docs.map((d) => {
             const data = d.data();
             const pName = String(data.name || 'Panellist');
             return {
               id: d.id,
+              ownerId: typeof data.ownerId === 'string' ? data.ownerId : undefined,
               name: pName,
               age: Number(data.age || 30),
               role: String(data.role || ''),
@@ -430,12 +514,13 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     unsubs.push(
       onSnapshot(
-        query(collection(db, 'tasks'), where('ownerId', '==', activeUid)),
+        tasksQuery,
         (snap) => {
           const items: ResearchTask[] = snap.docs.map((d) => {
             const data = d.data();
             return {
               id: d.id,
+              ownerId: typeof data.ownerId === 'string' ? data.ownerId : undefined,
               title: String(data.title || ''),
               studyName: String(data.studyName || ''),
               assignee: String(data.assignee || 'Elena Rodriguez'),
@@ -454,12 +539,13 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     unsubs.push(
       onSnapshot(
-        query(collection(db, 'driveExports'), where('ownerId', '==', activeUid)),
+        driveExportsQuery,
         (snap) => {
           const items: DriveAuditRecord[] = snap.docs.map((d) => {
             const data = d.data();
             return {
               id: d.id,
+              ownerId: typeof data.ownerId === 'string' ? data.ownerId : undefined,
               driveFileId: String(data.driveFileId || ''),
               fileName: String(data.fileName || ''),
               mimeType: String(data.mimeType || ''),
@@ -477,14 +563,156 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       )
     );
 
+    // Subscribe to global workspace governance settings (readable by all signed-in users)
+    unsubs.push(
+      onSnapshot(
+        doc(db, 'workspaceSettings', 'global'),
+        (snap) => {
+          if (!snap.exists()) return;
+          const data = snap.data();
+          const pool =
+            typeof data.synthesisHoursPool === 'number'
+              ? data.synthesisHoursPool
+              : DEFAULT_WORKSPACE_SETTINGS.synthesisHoursPool;
+          const nextSettings: WorkspaceSettings = {
+            samlSsoEnforced: Boolean(data.samlSsoEnforced),
+            privacyShieldDefault: Boolean(data.privacyShieldDefault),
+            dataResidency:
+              data.dataResidency === 'EU-Central (Frankfurt)' ||
+              data.dataResidency === 'UK-South'
+                ? data.dataResidency
+                : 'EU-West (London)',
+            britishSpellingDefault: Boolean(data.britishSpellingDefault),
+            autoCorrectEnabledDefault: Boolean(data.autoCorrectEnabledDefault),
+            synthesisHoursPool: pool,
+            updatedBy: String(data.updatedBy || 'Administrator'),
+            updatedAtLabel: 'Synced to Firestore',
+          };
+          setState((prev) => ({
+            ...prev,
+            workspaceSettings: nextSettings,
+            credits: pool,
+          }));
+        },
+        (error) => {
+          handleFirestoreError(error, OperationType.GET, 'workspaceSettings/global');
+        }
+      )
+    );
+
+    // Subscribe to delegated admin accounts (Root Admin only — O(1) list rule)
+    if (isRootAdmin) {
+      unsubs.push(
+        onSnapshot(
+          collection(db, 'admins'),
+          (snap) => {
+            const admins: AdminAccount[] = snap.docs.map((d) => {
+              const data = d.data();
+              return {
+                uid: d.id,
+                email: String(data.email || ''),
+                displayName: String(data.displayName || 'Delegated Admin'),
+                role: 'Admin',
+                grantedBy: String(data.grantedBy || 'rolan.bacalla@gmail.com'),
+                createdAtLabel: 'Active in Firestore',
+              };
+            });
+            setState((prev) => ({ ...prev, adminAccounts: admins }));
+          },
+          (error) => {
+            handleFirestoreError(error, OperationType.LIST, 'admins');
+          }
+        )
+      );
+    }
+
     return () => {
       cancelled = true;
       unsubs.forEach((fn) => fn());
     };
-  }, [activeUid]);
+  }, [activeUid, isRootAdmin]);
+
+  const updateWorkspaceSettings = async (
+    patch: Partial<Omit<WorkspaceSettings, 'updatedBy' | 'updatedAtLabel'>>
+  ): Promise<void> => {
+    const updatedBy = clampStr(
+      currentUser?.email || currentUser?.displayName || 'Administrator',
+      120,
+      'Administrator'
+    );
+    const merged: WorkspaceSettings = {
+      ...state.workspaceSettings,
+      ...patch,
+      synthesisHoursPool: Math.min(
+        10000,
+        Math.max(
+          0,
+          Number(
+            (patch.synthesisHoursPool ?? state.workspaceSettings.synthesisHoursPool).toFixed(1)
+          )
+        )
+      ),
+      updatedBy,
+      updatedAtLabel: 'Just now',
+    };
+
+    if (activeUid && isAdmin) {
+      try {
+        await setDoc(doc(db, 'workspaceSettings', 'global'), {
+          samlSsoEnforced: Boolean(merged.samlSsoEnforced),
+          privacyShieldDefault: Boolean(merged.privacyShieldDefault),
+          dataResidency: merged.dataResidency,
+          britishSpellingDefault: Boolean(merged.britishSpellingDefault),
+          autoCorrectEnabledDefault: Boolean(merged.autoCorrectEnabledDefault),
+          synthesisHoursPool: merged.synthesisHoursPool,
+          updatedBy: merged.updatedBy,
+          updatedAt: serverTimestamp(),
+        });
+      } catch (err) {
+        handleFirestoreError(err, OperationType.WRITE, 'workspaceSettings/global');
+        throw err;
+      }
+    } else {
+      setState((prev) => ({
+        ...prev,
+        workspaceSettings: merged,
+        credits: merged.synthesisHoursPool,
+      }));
+    }
+  };
+
+  const setSynthesisHoursPool = async (hours: number): Promise<void> => {
+    const safeHours = Math.min(10000, Math.max(0, Number(hours.toFixed(1))));
+    if (activeUid && isAdmin) {
+      await updateWorkspaceSettings({ synthesisHoursPool: safeHours });
+    } else {
+      setState((prev) => ({
+        ...prev,
+        credits: safeHours,
+        workspaceSettings: {
+          ...prev.workspaceSettings,
+          synthesisHoursPool: safeHours,
+        },
+      }));
+    }
+  };
 
   const addCredits = (hours: number) => {
-    setState((prev) => ({ ...prev, credits: Number((prev.credits + hours).toFixed(1)) }));
+    const nextTotal = Math.min(10000, Math.max(0, Number((state.credits + hours).toFixed(1))));
+    if (activeUid && isAdmin) {
+      void updateWorkspaceSettings({ synthesisHoursPool: nextTotal }).catch(() => {
+        // Error handled inside updateWorkspaceSettings
+      });
+    } else {
+      setState((prev) => ({
+        ...prev,
+        credits: nextTotal,
+        workspaceSettings: {
+          ...prev.workspaceSettings,
+          synthesisHoursPool: nextTotal,
+        },
+      }));
+    }
   };
 
   const addProject = (project: Omit<Project, 'id' | 'lastUpdated'>): Project => {
@@ -492,6 +720,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const created: Project = {
       ...project,
       id,
+      ownerId: activeUid ?? undefined,
       lastUpdated: 'Just now',
     };
 
@@ -510,7 +739,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         lastUpdated: 'Just now',
         objective: clampStr(project.objective, 1000),
         primaryQuestion: clampStr(project.primaryQuestion, 1000),
-        privacyShieldEnabled: true,
+        privacyShieldEnabled: state.workspaceSettings.privacyShieldDefault,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       }).catch((err) => handleFirestoreError(err, OperationType.CREATE, path));
@@ -521,11 +750,42 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return created;
   };
 
+  const updateProjectStatus = (projectId: string, status: Project['status']) => {
+    if (activeUid) {
+      void updateDoc(doc(db, 'projects', projectId), {
+        status,
+        lastUpdated: 'Just now',
+        updatedAt: serverTimestamp(),
+      }).catch((err) => handleFirestoreError(err, OperationType.UPDATE, `projects/${projectId}`));
+    } else {
+      setState((prev) => ({
+        ...prev,
+        projects: prev.projects.map((p) =>
+          p.id === projectId ? { ...p, status, lastUpdated: 'Just now' } : p
+        ),
+      }));
+    }
+  };
+
+  const deleteProject = (projectId: string) => {
+    if (activeUid) {
+      void deleteDoc(doc(db, 'projects', projectId)).catch((err) =>
+        handleFirestoreError(err, OperationType.DELETE, `projects/${projectId}`)
+      );
+    } else {
+      setState((prev) => ({
+        ...prev,
+        projects: prev.projects.filter((p) => p.id !== projectId),
+      }));
+    }
+  };
+
   const addInsight = (insight: Omit<InsightItem, 'id' | 'timestamp'>) => {
     const id = sanitizeId('ins');
     const created: InsightItem = {
       ...insight,
       id,
+      ownerId: activeUid ?? undefined,
       timestamp: 'Today',
     };
 
@@ -550,6 +810,19 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const deleteInsight = (insightId: string) => {
+    if (activeUid) {
+      void deleteDoc(doc(db, 'insights', insightId)).catch((err) =>
+        handleFirestoreError(err, OperationType.DELETE, `insights/${insightId}`)
+      );
+    } else {
+      setState((prev) => ({
+        ...prev,
+        insights: prev.insights.filter((i) => i.id !== insightId),
+      }));
+    }
+  };
+
   const promoteInsightToTask = (insightId: string) => {
     const target = state.insights.find((item) => item.id === insightId);
     if (!target || target.promotedToTask) return;
@@ -557,6 +830,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const taskId = sanitizeId('task');
     const newTask: ResearchTask = {
       id: taskId,
+      ownerId: activeUid ?? undefined,
       title: clampStr(`Follow up: ${target.title}`, 240),
       studyName: clampStr(study?.name || 'Active Study', 160),
       assignee: currentUser?.displayName || 'Elena Rodriguez',
@@ -622,6 +896,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const created: Participant = {
       ...p,
       id,
+      ownerId: activeUid ?? undefined,
       joined: 'Today',
       avatar: avatars[state.participants.length % avatars.length],
       sessionsCompleted: 0,
@@ -652,6 +927,19 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const deleteParticipant = (participantId: string) => {
+    if (activeUid) {
+      void deleteDoc(doc(db, 'participants', participantId)).catch((err) =>
+        handleFirestoreError(err, OperationType.DELETE, `participants/${participantId}`)
+      );
+    } else {
+      setState((prev) => ({
+        ...prev,
+        participants: prev.participants.filter((p) => p.id !== participantId),
+      }));
+    }
+  };
+
   const addSession = (
     s: Omit<ResearchSession, 'id' | 'participantAvatar' | 'highlightsCount'>
   ) => {
@@ -660,6 +948,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const created: ResearchSession = {
       ...s,
       id,
+      ownerId: activeUid ?? undefined,
       participantAvatar: matched?.avatar || resolveAvatarUrl(undefined, s.participantName),
       highlightsCount: 0,
     };
@@ -685,11 +974,39 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const updateSessionStatus = (sessionId: string, status: ResearchSession['status']) => {
+    if (activeUid) {
+      void updateDoc(doc(db, 'sessions', sessionId), {
+        status,
+        updatedAt: serverTimestamp(),
+      }).catch((err) => handleFirestoreError(err, OperationType.UPDATE, `sessions/${sessionId}`));
+    } else {
+      setState((prev) => ({
+        ...prev,
+        sessions: prev.sessions.map((s) => (s.id === sessionId ? { ...s, status } : s)),
+      }));
+    }
+  };
+
+  const deleteSession = (sessionId: string) => {
+    if (activeUid) {
+      void deleteDoc(doc(db, 'sessions', sessionId)).catch((err) =>
+        handleFirestoreError(err, OperationType.DELETE, `sessions/${sessionId}`)
+      );
+    } else {
+      setState((prev) => ({
+        ...prev,
+        sessions: prev.sessions.filter((s) => s.id !== sessionId),
+      }));
+    }
+  };
+
   const addTask = (t: Omit<ResearchTask, 'id' | 'completed'>) => {
     const id = sanitizeId('task');
     const created: ResearchTask = {
       ...t,
       id,
+      ownerId: activeUid ?? undefined,
       completed: false,
     };
 
@@ -725,6 +1042,19 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         tasks: prev.tasks.map((t) =>
           t.id === taskId ? { ...t, completed: !t.completed } : t
         ),
+      }));
+    }
+  };
+
+  const deleteTask = (taskId: string) => {
+    if (activeUid) {
+      void deleteDoc(doc(db, 'tasks', taskId)).catch((err) =>
+        handleFirestoreError(err, OperationType.DELETE, `tasks/${taskId}`)
+      );
+    } else {
+      setState((prev) => ({
+        ...prev,
+        tasks: prev.tasks.filter((t) => t.id !== taskId),
       }));
     }
   };
@@ -788,6 +1118,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const inviteTeamMember = (email: string, role: TeamMember['role']) => {
+    if (!isAdmin) return;
     const namePart = email.split('@')[0].replace(/[._-]/g, ' ');
     const formattedName = namePart
       .split(' ')
@@ -814,9 +1145,18 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const updateTeamRole = (memberId: string, role: TeamMember['role']) => {
+    if (!isAdmin) return;
     setState((prev) => ({
       ...prev,
       teamMembers: prev.teamMembers.map((m) => (m.id === memberId ? { ...m, role } : m)),
+    }));
+  };
+
+  const removeTeamMember = (memberId: string) => {
+    if (!isAdmin) return;
+    setState((prev) => ({
+      ...prev,
+      teamMembers: prev.teamMembers.filter((m) => m.id !== memberId),
     }));
   };
 
@@ -840,6 +1180,7 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const created: DriveAuditRecord = {
       ...record,
       id,
+      ownerId: activeUid ?? undefined,
       createdAtLabel: 'Just now',
     };
 
@@ -859,6 +1200,87 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const deleteDriveExport = (exportId: string) => {
+    if (activeUid) {
+      void deleteDoc(doc(db, 'driveExports', exportId)).catch((err) =>
+        handleFirestoreError(err, OperationType.DELETE, `driveExports/${exportId}`)
+      );
+    } else {
+      setState((prev) => ({
+        ...prev,
+        driveExports: prev.driveExports.filter((e) => e.id !== exportId),
+      }));
+    }
+  };
+
+  const grantAdminAccess = async (
+    uid: string,
+    email: string,
+    displayName: string
+  ): Promise<void> => {
+    if (!isAdmin) return;
+    const cleanUid = uid.trim();
+    if (!/^[a-zA-Z0-9_-]{1,128}$/.test(cleanUid)) {
+      throw new Error('Firebase UID must contain only letters, numbers, underscores, or hyphens.');
+    }
+    const cleanEmail = clampStr(email.toLowerCase(), 160);
+    const cleanName = clampStr(displayName, 120, 'Delegated Admin');
+    const grantedBy = clampStr(
+      currentUser?.email || 'rolan.bacalla@gmail.com',
+      160,
+      'rolan.bacalla@gmail.com'
+    );
+
+    if (activeUid) {
+      try {
+        await setDoc(doc(db, 'admins', cleanUid), {
+          uid: cleanUid,
+          email: cleanEmail,
+          displayName: cleanName,
+          role: 'Admin',
+          grantedBy,
+          createdAt: serverTimestamp(),
+        });
+      } catch (err) {
+        handleFirestoreError(err, OperationType.CREATE, `admins/${cleanUid}`);
+        throw err;
+      }
+    } else {
+      setState((prev) => ({
+        ...prev,
+        adminAccounts: [
+          ...prev.adminAccounts.filter((a) => a.uid !== cleanUid),
+          {
+            uid: cleanUid,
+            email: cleanEmail,
+            displayName: cleanName,
+            role: 'Admin',
+            grantedBy,
+            createdAtLabel: 'Just now',
+          },
+        ],
+      }));
+    }
+  };
+
+  const revokeAdminAccess = async (uid: string): Promise<void> => {
+    if (!isAdmin) return;
+    const cleanUid = uid.trim();
+    if (activeUid) {
+      try {
+        await deleteDoc(doc(db, 'admins', cleanUid));
+      } catch (err) {
+        handleFirestoreError(err, OperationType.DELETE, `admins/${cleanUid}`);
+        throw err;
+      }
+    } else {
+      setState((prev) => ({
+        ...prev,
+        adminAccounts: prev.adminAccounts.filter((a) => a.uid !== cleanUid),
+      }));
+    }
+  };
+
   return (
     <ResearchContext.Provider
       value={{
@@ -866,21 +1288,34 @@ export const ResearchProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         isCloudSynced: isRealFirebaseUser,
         cloudError,
         addCredits,
+        setSynthesisHoursPool,
         addProject,
+        updateProjectStatus,
+        deleteProject,
         addInsight,
+        deleteInsight,
         promoteInsightToTask,
         toggleParticipantShortlist,
         addParticipant,
+        deleteParticipant,
         addSession,
+        updateSessionStatus,
+        deleteSession,
         addTask,
         toggleTask,
+        deleteTask,
         markThreadRead,
         replyToThread,
         addInboxThread,
         inviteTeamMember,
         updateTeamRole,
+        removeTeamMember,
         addCampaign,
         logDriveExport,
+        deleteDriveExport,
+        updateWorkspaceSettings,
+        grantAdminAccess,
+        revokeAdminAccess,
       }}
     >
       {children}

@@ -19,6 +19,7 @@ import {
   Clock,
   ChevronRight,
   Cloud,
+  Shield,
 } from 'lucide-react';
 import BuyCreditsModal from '../components/BuyCreditsModal';
 import { useAuth } from '../hooks/useAuth';
@@ -39,6 +40,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/dashboard/tasks': 'Action Items',
   '/dashboard/inbox': 'Messages',
   '/dashboard/settings/team': 'Team & Governance',
+  '/dashboard/admin': 'Admin Control Centre',
 };
 
 const DashboardLayout: React.FC = () => {
@@ -47,7 +49,7 @@ const DashboardLayout: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
 
-  const { logout, currentUser, isDemoMode, signInWithGoogle } = useAuth();
+  const { logout, currentUser, isDemoMode, isAdmin, isRootAdmin, signInWithGoogle } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { credits, addCredits, projects, participants, tasks, isCloudSynced } = useResearch();
   const navigate = useNavigate();
@@ -216,6 +218,22 @@ const DashboardLayout: React.FC = () => {
             />
           </nav>
         </div>
+
+        {isAdmin && (
+          <div>
+            <p className="px-3 mb-2 text-xs font-medium text-[var(--sys-primary)]">
+              Administration
+            </p>
+            <nav aria-label="Administrator navigation" className="space-y-0.5">
+              <SidebarItem
+                to="/dashboard/admin"
+                icon={<Shield className="w-4 h-4" />}
+                label="Admin Console"
+                onNavigate={closeMobileNav}
+              />
+            </nav>
+          </div>
+        )}
       </div>
 
       {/* Bottom Workspace Storage, Synthesis Hours & Account */}
@@ -265,7 +283,13 @@ const DashboardLayout: React.FC = () => {
                 {displayName}
               </p>
               <p className="text-[11px] text-[var(--sys-on-surface-tertiary)] truncate">
-                {isCloudSynced ? 'Firestore UK/EU Synced' : 'Local Demo Preview'}
+                {isRootAdmin
+                  ? 'Root Admin · Firestore UK/EU'
+                  : isAdmin
+                  ? 'Admin · Firestore UK/EU'
+                  : isCloudSynced
+                  ? 'Firestore UK/EU Synced'
+                  : 'Local Demo Preview'}
               </p>
             </div>
           </div>

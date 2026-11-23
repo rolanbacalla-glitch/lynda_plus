@@ -444,16 +444,113 @@
         "webViewLink",
         "createdAt"
       ]
+    },
+    "WorkspaceSettings": {
+      "title": "WorkspaceSettings",
+      "description": "Global workspace governance settings managed exclusively by verified workspace administrators.",
+      "type": "object",
+      "properties": {
+        "samlSsoEnforced": {
+          "type": "boolean",
+          "description": "Whether SAML SSO enforcement is active across the workspace."
+        },
+        "privacyShieldDefault": {
+          "type": "boolean",
+          "description": "Whether client-side Privacy Shield masking is enabled by default for new studies."
+        },
+        "dataResidency": {
+          "type": "string",
+          "enum": ["EU-West (London)", "EU-Central (Frankfurt)", "UK-South"],
+          "description": "Primary regional data residency policy."
+        },
+        "britishSpellingDefault": {
+          "type": "boolean",
+          "description": "Whether British English dictionary checks are enforced by default."
+        },
+        "autoCorrectEnabledDefault": {
+          "type": "boolean",
+          "description": "Whether automatic spelling correction is active by default in script editors."
+        },
+        "synthesisHoursPool": {
+          "type": "number",
+          "description": "Workspace-wide synthesis hours quota."
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Email or display name of the administrator who last updated settings."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the last governance update."
+        }
+      },
+      "required": [
+        "samlSsoEnforced",
+        "privacyShieldDefault",
+        "dataResidency",
+        "britishSpellingDefault",
+        "autoCorrectEnabledDefault",
+        "synthesisHoursPool",
+        "updatedBy",
+        "updatedAt"
+      ]
+    },
+    "AdminAccount": {
+      "title": "AdminAccount",
+      "description": "Delegated administrator record granting full workspace RBAC privileges to a verified Firebase Auth UID.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "enum": ["Admin"]
+        },
+        "grantedBy": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "email",
+        "displayName",
+        "role",
+        "grantedBy",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
     "/projects/{projectId}": {
       "schema": { "$ref": "#/entities/Project" },
-      "description": "Research studies owned by authenticated researchers."
+      "description": "Research studies owned by authenticated researchers and managed workspace-wide by administrators."
     },
     "/insights/{insightId}": {
       "schema": { "$ref": "#/entities/Insight" },
-      "description": "Evidence-backed findings linked to an owner's project."
+      "description": "Evidence-backed findings linked to an owner's project and moderated by administrators."
     },
     "/sessions/{sessionId}": {
       "schema": { "$ref": "#/entities/Session" },
@@ -461,7 +558,7 @@
     },
     "/participants/{participantId}": {
       "schema": { "$ref": "#/entities/Participant" },
-      "description": "Owner-isolated BYO customer research panelists."
+      "description": "Owner-isolated BYO customer research panellists with administrator oversight."
     },
     "/tasks/{taskId}": {
       "schema": { "$ref": "#/entities/ResearchTask" },
@@ -469,7 +566,15 @@
     },
     "/driveExports/{exportId}": {
       "schema": { "$ref": "#/entities/DriveAuditRecord" },
-      "description": "Owner-scoped audit trail of Google Drive exports and imports."
+      "description": "Audit trail of Google Drive exports and imports."
+    },
+    "/workspaceSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/WorkspaceSettings" },
+      "description": "Workspace-wide governance configuration readable by signed-in users and writable only by verified administrators."
+    },
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/AdminAccount" },
+      "description": "Delegated administrator accounts managed exclusively by verified administrators."
     }
   }
 }

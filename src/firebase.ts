@@ -31,6 +31,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 export const firebaseProjectId = firebaseConfig.projectId;
+export const firebaseAuthDomain = firebaseConfig.authDomain;
 export const firestoreDatabaseId = firebaseConfig.firestoreDatabaseId;
 
 // Validate connection to Firestore on startup

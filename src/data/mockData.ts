@@ -36,6 +36,7 @@ export type StudyMethod = 'Moderated Interview' | 'First-Click Test' | 'Five-Sec
 
 export interface Project {
   id: string;
+  ownerId?: string;
   name: string;
   method: StudyMethod;
   status: StudyStatus;
@@ -51,6 +52,7 @@ export interface Project {
 
 export interface InsightItem {
   id: string;
+  ownerId?: string;
   projectId: string;
   title: string;
   description: string;
@@ -70,6 +72,7 @@ export interface ThemeMetric {
 
 export interface Participant {
   id: string;
+  ownerId?: string;
   name: string;
   age: number;
   role: string;
@@ -99,6 +102,7 @@ export interface TeamMember {
 
 export interface ResearchSession {
   id: string;
+  ownerId?: string;
   projectId: string;
   studyName: string;
   participantName: string;
@@ -114,6 +118,7 @@ export interface ResearchSession {
 
 export interface ResearchTask {
   id: string;
+  ownerId?: string;
   title: string;
   studyName: string;
   assignee: string;

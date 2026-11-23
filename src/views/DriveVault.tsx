@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useResearch } from '../contexts/ResearchContext';
-import { firebaseProjectId } from '../firebase';
+import { firebaseAuthDomain, firebaseProjectId } from '../firebase';
 import GoogleSignInButton from '../components/GoogleSignInButton';
 import {
   buildStudyBriefMarkdown,
@@ -66,12 +66,15 @@ const DriveVault: React.FC = () => {
   const [renameDraft, setRenameDraft] = useState('');
   const [mutating, setMutating] = useState(false);
 
-  // Actionable auth/unauthorized-domain helper + 100% free local file audit/export
+  // Actionable auth/unauthorized-domain & redirect_uri_mismatch helpers + 100% free local file audit/export
   const [isUnauthorisedDomainError, setIsUnauthorisedDomainError] = useState(false);
   const [copiedDomain, setCopiedDomain] = useState(false);
+  const [copiedRedirectUri, setCopiedRedirectUri] = useState(false);
   const localFileInputRef = useRef<HTMLInputElement | null>(null);
   const currentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const oauthRedirectUri = `https://${firebaseAuthDomain}/__/auth/handler`;
   const firebaseAuthSettingsUrl = `https://console.firebase.google.com/project/${firebaseProjectId}/authentication/settings`;
+  const gcpCredentialsUrl = `https://console.cloud.google.com/apis/credentials?project=${firebaseProjectId}`;
 
   const loadFiles = useCallback(async () => {
     if (!driveAccessToken) return;
@@ -153,6 +156,16 @@ const DriveVault: React.FC = () => {
       await navigator.clipboard.writeText(currentHostname);
       setCopiedDomain(true);
       window.setTimeout(() => setCopiedDomain(false), 2000);
+    } catch {
+      // Clipboard API unavailable
+    }
+  };
+
+  const handleCopyRedirectUri = async () => {
+    try {
+      await navigator.clipboard.writeText(oauthRedirectUri);
+      setCopiedRedirectUri(true);
+      window.setTimeout(() => setCopiedRedirectUri(false), 2000);
     } catch {
       // Clipboard API unavailable
     }
@@ -434,11 +447,47 @@ const DriveVault: React.FC = () => {
                 <GoogleSignInButton onClick={handleConnect} label="Sign in with Google" />
               </div>
 
-              <div className="pt-4 border-t border-[var(--sys-outline-variant)] flex items-start gap-2.5 text-xs text-[var(--sys-on-surface-secondary)] leading-relaxed">
-                <ShieldCheck className="w-4 h-4 text-[var(--sys-primary)] shrink-0 mt-0.5" />
-                <span>
-                  <strong className="text-[var(--sys-on-surface)]">Zero API fee:</strong> Google Drive API calls carry no per-request charges and exported briefs are saved directly in your own Google Drive storage quota.
-                </span>
+              <div className="pt-4 border-t border-[var(--sys-outline-variant)] space-y-3 text-xs text-[var(--sys-on-surface-secondary)] leading-relaxed">
+                <div className="flex items-start gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-[var(--sys-primary)] shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-[var(--sys-on-surface)]">Zero API fee:</strong> Google Drive API calls carry no per-request charges and exported briefs are saved directly in your own Google Drive storage quota.
+                  </span>
+                </div>
+
+                <details className="rounded-[var(--sys-radius-md)] bg-[var(--sys-surface-low)] border border-[var(--sys-outline-variant)] p-3">
+                  <summary className="font-semibold text-[var(--sys-on-surface)] cursor-pointer select-none">
+                    Seeing “Error 400: redirect_uri_mismatch” in the Google popup?
+                  </summary>
+                  <div className="mt-2.5 space-y-2.5 text-xs text-[var(--sys-on-surface-secondary)]">
+                    <p>
+                      Open your Google Cloud OAuth 2.0 Web Client and add this exact URL under{' '}
+                      <strong className="text-[var(--sys-on-surface)]">Authorised redirect URIs</strong> (changes can take 1–5 minutes to propagate):
+                    </p>
+                    <div className="p-2 rounded bg-[var(--sys-surface-lowest)] border border-[var(--sys-outline-variant)] font-mono text-[11px] text-[var(--sys-on-surface)] break-all">
+                      {oauthRedirectUri}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void handleCopyRedirectUri()}
+                        className="inline-flex items-center gap-1.5 min-h-[32px] px-3 py-1 text-xs sys-btn-secondary cursor-pointer"
+                      >
+                        {copiedRedirectUri ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedRedirectUri ? 'Redirect URI Copied' : 'Copy Redirect URI'}</span>
+                      </button>
+                      <a
+                        href={gcpCredentialsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 min-h-[32px] px-3 py-1 text-xs sys-btn-secondary no-underline"
+                      >
+                        <span>Open Google Cloud Credentials</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                </details>
               </div>
             </div>
 

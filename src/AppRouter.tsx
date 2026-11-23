@@ -21,6 +21,7 @@ import AgenticSession from './views/AgenticSession';
 import RecruitingCampaigns from './views/RecruitingCampaigns';
 import DriveVault from './views/DriveVault';
 import IntegrationsHub from './views/IntegrationsHub';
+import AdminConsole from './views/AdminConsole';
 import Login from './views/Login';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -69,6 +70,7 @@ const AppRouter: React.FC = () => {
                   <Route path="sessions" element={<Sessions />} />
                   <Route path="tasks" element={<Tasks />} />
                   <Route path="settings/team" element={<TeamSettings />} />
+                  <Route path="admin" element={<AdminConsole />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

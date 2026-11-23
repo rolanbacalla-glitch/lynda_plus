@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  AlertTriangle,
   ArrowUpRight,
   BarChart3,
   CheckCircle2,
@@ -8,15 +9,28 @@ import {
   Play,
   Plus,
   Search,
+  Shield,
+  Trash2,
   Video,
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import { useResearch } from '../contexts/ResearchContext';
-import type { StudyStatus } from '../data/mockData';
+import type { Project, StudyStatus } from '../data/mockData';
 
 const ProjectList: React.FC = () => {
-  const { projects, participants, sessions, tasks, toggleTask } = useResearch();
+  const { isAdmin } = useAuth();
+  const {
+    projects,
+    participants,
+    sessions,
+    tasks,
+    toggleTask,
+    updateProjectStatus,
+    deleteProject,
+  } = useResearch();
   const [statusFilter, setStatusFilter] = useState<'All' | StudyStatus>('All');
   const [query, setQuery] = useState('');
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   const filteredProjects = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -48,6 +62,15 @@ const ProjectList: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
+          {isAdmin && (
+            <Link
+              to="/dashboard/admin"
+              className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs sys-btn-secondary whitespace-nowrap no-underline"
+            >
+              <Shield className="w-3.5 h-3.5 text-[var(--sys-primary)]" />
+              <span>Admin Console</span>
+            </Link>
+          )}
           <Link
             to="/dashboard/preview"
             className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs sys-btn-secondary whitespace-nowrap no-underline"
@@ -192,18 +215,33 @@ const ProjectList: React.FC = () => {
                     {project.method}
                   </td>
                   <td className="py-3.5 px-4 text-xs font-semibold">
-                    <span
-                      style={{
-                        color:
-                          project.status === 'Live'
-                            ? 'var(--sys-success-fg)'
-                            : project.status === 'Completed'
-                            ? 'var(--sys-primary)'
-                            : 'var(--sys-on-surface-tertiary)',
-                      }}
-                    >
-                      {project.status}
-                    </span>
+                    {isAdmin ? (
+                      <select
+                        value={project.status}
+                        onChange={(e) =>
+                          updateProjectStatus(project.id, e.target.value as StudyStatus)
+                        }
+                        aria-label={`Change status for ${project.name}`}
+                        className="h-8 px-2 text-xs font-semibold sys-input"
+                      >
+                        <option value="Draft">Draft</option>
+                        <option value="Live">Live</option>
+                        <option value="Completed">Completed</option>
+                      </select>
+                    ) : (
+                      <span
+                        style={{
+                          color:
+                            project.status === 'Live'
+                              ? 'var(--sys-success-fg)'
+                              : project.status === 'Completed'
+                              ? 'var(--sys-primary)'
+                              : 'var(--sys-on-surface-tertiary)',
+                        }}
+                      >
+                        {project.status}
+                      </span>
+                    )}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-xs text-[var(--sys-on-surface)]">
                     {project.participants} / {project.targetParticipants}
@@ -227,6 +265,17 @@ const ProjectList: React.FC = () => {
                         <BarChart3 className="w-3.5 h-3.5" />
                         <span>Insights</span>
                       </Link>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => setProjectToDelete(project)}
+                          aria-label={`Delete study ${project.name}`}
+                          title="Delete study (Admin)"
+                          className="w-8 h-8 rounded-[var(--sys-radius-sm)] border border-[var(--sys-outline-variant)] inline-flex items-center justify-center text-[var(--sys-danger-fg)] hover:bg-[var(--sys-danger-bg)] transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -355,6 +404,69 @@ const ProjectList: React.FC = () => {
           </div>
         </section>
       </div>
+
+      {/* Admin Delete Study Confirmation Modal */}
+      {isAdmin && projectToDelete && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-study-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            onClick={() => setProjectToDelete(null)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-full max-w-md rounded-[var(--sys-radius-lg)] bg-[var(--sys-surface-lowest)] border border-[var(--sys-outline)] p-6 space-y-4 shadow-xl">
+            <div className="flex items-start gap-3">
+              <div
+                className="w-10 h-10 rounded-[var(--sys-radius-sm)] flex items-center justify-center shrink-0"
+                style={{
+                  backgroundColor: 'var(--sys-danger-bg)',
+                  color: 'var(--sys-danger-fg)',
+                }}
+              >
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h2
+                  id="delete-study-modal-title"
+                  className="text-base font-bold text-[var(--sys-on-surface)]"
+                >
+                  Delete study &ldquo;{projectToDelete.name}&rdquo;?
+                </h2>
+                <p className="text-xs text-[var(--sys-on-surface-secondary)] leading-relaxed">
+                  This permanently removes the study from Firestore. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="pt-2 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setProjectToDelete(null)}
+                className="px-4 py-2 text-xs sys-btn-secondary cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteProject(projectToDelete.id);
+                  setProjectToDelete(null);
+                }}
+                className="px-4 py-2 text-xs font-semibold rounded-[var(--sys-radius-sm)] cursor-pointer hover:opacity-90"
+                style={{
+                  backgroundColor: 'var(--sys-danger-fg)',
+                  color: '#ffffff',
+                }}
+              >
+                Delete Study
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
