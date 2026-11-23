@@ -1,37 +1,110 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
-import { mockTeamMembers } from '../data/mockData';
+import {
+  LayoutGrid,
+  PlusCircle,
+  Video,
+  Users,
+  Megaphone,
+  CheckSquare,
+  Inbox as InboxIcon,
+  Settings,
+  LogOut,
+  Search,
+  Moon,
+  Sun,
+  Menu,
+  X,
+  Clock,
+  ChevronRight,
+} from 'lucide-react';
 import BuyCreditsModal from '../components/BuyCreditsModal';
-import AgenticAssistant from '../components/AgenticAssistant';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
+import { useResearch } from '../contexts/ResearchContext';
+import { ASSETS } from '../data/mockData';
 
+const ROUTE_TITLES: Record<string, string> = {
+  '/dashboard': 'Overview',
+  '/dashboard/projects': 'Overview',
+  '/dashboard/create': 'New Study',
+  '/dashboard/preview': 'Participant Preview',
+  '/dashboard/sessions': 'Sessions',
+  '/dashboard/panel': 'Participants',
+  '/dashboard/recruitment': 'Campaigns',
+  '/dashboard/tasks': 'Tasks',
+  '/dashboard/inbox': 'Inbox',
+  '/dashboard/settings/team': 'Team Settings',
+};
 
 const DashboardLayout: React.FC = () => {
-  const [credits, setCredits] = useState(2.4);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+
   const { logout, currentUser } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { credits, addCredits, projects, participants, tasks, inbox } = useResearch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Close sidebar on navigation (for mobile)
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [location.pathname]);
+  const closeMobileNav = () => setIsSidebarOpen(false);
 
-  // Lock scroll when mobile sidebar is open
   useEffect(() => {
-    if (isSidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
+    document.body.style.overflow = isSidebarOpen ? 'hidden' : '';
+    return () => {
       document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
+    };
   }, [isSidebarOpen]);
 
+  const unreadCount = useMemo(() => inbox.filter((m) => m.unread).length, [inbox]);
+  const openTasksCount = useMemo(() => tasks.filter((t) => !t.completed).length, [tasks]);
+
+  const currentSectionTitle = useMemo(() => {
+    if (ROUTE_TITLES[location.pathname]) return ROUTE_TITLES[location.pathname];
+    if (location.pathname.includes('/insights')) return 'Study Insights';
+    if (location.pathname.includes('/session')) return 'Live Session';
+    if (location.pathname.includes('/record')) return 'Recording Booth';
+    return 'Workspace';
+  }, [location.pathname]);
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    const studyHits = projects
+      .filter((p) => p.name.toLowerCase().includes(q) || p.method.toLowerCase().includes(q))
+      .slice(0, 3)
+      .map((p) => ({
+        id: `study-${p.id}`,
+        label: p.name,
+        meta: `Study · ${p.status}`,
+        to: `/dashboard/projects/${p.id}/insights`,
+      }));
+    const participantHits = participants
+      .filter((p) => p.name.toLowerCase().includes(q) || p.role.toLowerCase().includes(q))
+      .slice(0, 2)
+      .map((p) => ({
+        id: `part-${p.id}`,
+        label: p.name,
+        meta: `Participant · ${p.role}`,
+        to: '/dashboard/panel',
+      }));
+    const taskHits = tasks
+      .filter((t) => t.title.toLowerCase().includes(q))
+      .slice(0, 2)
+      .map((t) => ({
+        id: `task-${t.id}`,
+        label: t.title,
+        meta: `Task · ${t.priority}`,
+        to: '/dashboard/tasks',
+      }));
+    return [...studyHits, ...participantHits, ...taskHits];
+  }, [searchQuery, projects, participants, tasks]);
+
   const handlePurchase = (amount: number) => {
-    setCredits(prev => prev + amount);
+    addCredits(amount);
     setIsModalOpen(false);
   };
 
@@ -40,152 +113,247 @@ const DashboardLayout: React.FC = () => {
       await logout();
       navigate('/login');
     } catch (error) {
-      console.error("Failed to log out", error);
+      console.error('Failed to log out', error);
     }
   };
 
-  return (
-    <div className="flex min-h-screen bg-[#F8F9FD] font-sans antialiased">
-      {/* Mobile Sidebar Overlay/Backdrop */}
-      {isSidebarOpen && createPortal(
-        <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1999] xl:hidden pointer-events-auto transition-opacity duration-300"
-          onClick={() => setIsSidebarOpen(false)}
-        />,
-        document.body
-      )}
+  const displayName =
+    currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Elena Rodriguez';
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-[2000] w-[280px] bg-white border-r border-slate-100 flex flex-col 
-        transition-transform duration-300 ease-in-out
-        xl:sticky xl:top-0 xl:h-screen xl:translate-x-0
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div className="p-8 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 no-underline group">
-            <div className="w-10 h-10 bg-brand-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20 group-hover:rotate-12 transition-transform">
-              <span className="font-bold text-lg">L+</span>
+  const navContent = (
+    <div className="flex flex-col h-full">
+      <div className="h-16 px-5 flex items-center justify-between border-b border-[var(--sys-outline-variant)]">
+        <Link
+          to="/"
+          className="text-base font-bold tracking-tight text-[var(--sys-on-surface)] no-underline whitespace-nowrap"
+        >
+          LyndaPlus
+        </Link>
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(false)}
+          className="lg:hidden w-9 h-9 rounded-[var(--sys-radius-sm)] flex items-center justify-center text-[var(--sys-on-surface-secondary)] hover:bg-[var(--sys-surface-container)]"
+          aria-label="Close sidebar"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-3 py-5 space-y-6">
+        <div>
+          <p className="px-3 mb-2 text-xs font-medium text-[var(--sys-on-surface-tertiary)]">
+            Research
+          </p>
+          <nav aria-label="Workspace navigation" className="space-y-0.5">
+            <SidebarItem to="/dashboard" icon={<LayoutGrid className="w-4 h-4" />} label="Overview" onNavigate={closeMobileNav} end />
+            <SidebarItem to="/dashboard/create" icon={<PlusCircle className="w-4 h-4" />} label="Study Composer" onNavigate={closeMobileNav} />
+            <SidebarItem to="/dashboard/sessions" icon={<Video className="w-4 h-4" />} label="Sessions" onNavigate={closeMobileNav} />
+            <SidebarItem to="/dashboard/panel" icon={<Users className="w-4 h-4" />} label="Participants" onNavigate={closeMobileNav} />
+            <SidebarItem to="/dashboard/recruitment" icon={<Megaphone className="w-4 h-4" />} label="Campaigns" onNavigate={closeMobileNav} />
+          </nav>
+        </div>
+
+        <div>
+          <p className="px-3 mb-2 text-xs font-medium text-[var(--sys-on-surface-tertiary)]">
+            Operations
+          </p>
+          <nav aria-label="Operations navigation" className="space-y-0.5">
+            <SidebarItem
+              to="/dashboard/tasks"
+              icon={<CheckSquare className="w-4 h-4" />}
+              label="Tasks"
+              count={openTasksCount}
+              onNavigate={closeMobileNav}
+            />
+            <SidebarItem
+              to="/dashboard/inbox"
+              icon={<InboxIcon className="w-4 h-4" />}
+              label="Inbox"
+              count={unreadCount}
+              onNavigate={closeMobileNav}
+            />
+            <SidebarItem
+              to="/dashboard/settings/team"
+              icon={<Settings className="w-4 h-4" />}
+              label="Team Settings"
+              onNavigate={closeMobileNav}
+            />
+          </nav>
+        </div>
+      </div>
+
+      {/* Bottom Workspace Account & Credits */}
+      <div className="p-3 border-t border-[var(--sys-outline-variant)] space-y-2">
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="w-full p-3 rounded-[var(--sys-radius-md)] bg-[var(--sys-surface-low)] hover:bg-[var(--sys-surface-container)] border border-[var(--sys-outline-variant)] text-left transition-colors cursor-pointer"
+        >
+          <div className="flex items-center justify-between text-xs">
+            <span className="inline-flex items-center gap-1.5 font-medium text-[var(--sys-on-surface-secondary)]">
+              <Clock className="w-3.5 h-3.5 text-[var(--sys-primary)]" />
+              Synthesis Hours
+            </span>
+            <span className="font-mono font-semibold text-[var(--sys-on-surface)] tabular-nums">
+              {credits.toFixed(1)}h
+            </span>
+          </div>
+          <p className="text-[11px] text-[var(--sys-primary)] font-medium mt-1">
+            Add hours →
+          </p>
+        </button>
+
+        <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src={ASSETS.avatarElena}
+              alt={displayName}
+              referrerPolicy="no-referrer"
+              className="w-8 h-8 rounded-[var(--sys-radius-sm)] object-cover border border-[var(--sys-outline-variant)] shrink-0"
+            />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-[var(--sys-on-surface)] truncate">
+                {displayName}
+              </p>
+              <p className="text-[11px] text-[var(--sys-on-surface-tertiary)] truncate">
+                Workspace Lead
+              </p>
             </div>
-            <span className="text-xl font-bold text-slate-800 tracking-tight pr-1">Lynda<span className="text-brand-500">Plus</span></span>
-          </Link>
-          <button 
-            onClick={() => setIsSidebarOpen(false)}
-            className="xl:hidden w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500"
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Sign out"
+            aria-label="Sign out"
+            className="w-8 h-8 rounded-[var(--sys-radius-sm)] flex items-center justify-center text-[var(--sys-on-surface-tertiary)] hover:text-[var(--sys-on-surface)] hover:bg-[var(--sys-surface-container)] transition-colors cursor-pointer shrink-0"
           >
-            <span className="material-symbols-rounded">close</span>
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
+      </div>
+    </div>
+  );
 
-        <div className="flex-1 overflow-y-auto px-4 pb-8 scrollbar-hide">
-          <div className="mb-8">
-            <p className="px-4 text-[10px] font-bold text-slate-700 uppercase tracking-widest mb-4">Overview</p>
-            <nav className="space-y-1">
-              <SidebarLink to="/dashboard" icon="grid_view" label="Dashboard" end />
-              <SidebarLink to="/dashboard/inbox" icon="mail" label="Inbox" />
-              <SidebarLink to="/dashboard/panel" icon="group" label="Participants" />
-              <SidebarLink to="/dashboard/recruitment" icon="campaign" label="Recruitment" />
-              <SidebarLink to="/dashboard/sessions" icon="videocam" label="Sessions" />
-              <SidebarLink to="/dashboard/tasks" icon="assignment" label="Tasks" />
-            </nav>
-          </div>
+  return (
+    <div className="flex min-h-screen bg-[var(--sys-surface-canvas)] text-[var(--sys-on-surface)]">
+      {/* Mobile Sidebar Drawer */}
+      {isSidebarOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-50 lg:hidden flex">
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+              onClick={() => setIsSidebarOpen(false)}
+              aria-hidden="true"
+            />
+            <aside className="relative z-10 w-[260px] max-w-[85vw] bg-[var(--sys-surface-lowest)] border-r border-[var(--sys-outline-variant)] h-full">
+              {navContent}
+            </aside>
+          </div>,
+          document.body
+        )}
 
-          <div className="mb-8">
-            <p className="px-4 text-[10px] font-bold text-slate-700 uppercase tracking-widest mb-4">Team Members</p>
-            <div className="space-y-4 px-4">
-              {mockTeamMembers.map((member) => (
-                <TeamMember key={member.id} name={member.name} status={member.role} avatar={member.avatar} />
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="px-4 text-[10px] font-bold text-slate-700 uppercase tracking-widest mb-4">Settings</p>
-            <nav className="space-y-1">
-              <SidebarLink to="/dashboard/settings/team" icon="settings" label="Team Settings" />
-              <button 
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 font-semibold text-sm hover:bg-rose-50 hover:text-rose-600 transition-all group"
-              >
-                <span className="material-symbols-rounded text-rose-400 group-hover:text-rose-600 transition-colors">logout</span> Logout
-              </button>
-            </nav>
-          </div>
-
-          <div className="mt-8">
-            <AgenticAssistant />
-          </div>
-        </div>
+      {/* Desktop Fixed Sidebar */}
+      <aside className="hidden lg:flex flex-col w-[260px] shrink-0 sticky top-0 h-screen bg-[var(--sys-surface-lowest)] border-r border-[var(--sys-outline-variant)]">
+        {navContent}
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Content Shell */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        <header className="h-[72px] xl:h-[100px] flex items-center justify-between px-4 sm:px-6 xl:px-12 bg-white/80 backdrop-blur-md sticky top-0 z-[100] border-b border-slate-100">
-          <div className="flex items-center gap-4 flex-1 max-w-2xl">
-            <button 
+        <header className="h-16 sticky top-0 z-30 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 bg-[var(--sys-surface-canvas)]/90 backdrop-blur-md border-b border-[var(--sys-outline-variant)]">
+          {/* Left: Mobile trigger + Breadcrumb trail */}
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
               onClick={() => setIsSidebarOpen(true)}
-              className="xl:hidden w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-600 shadow-sm"
-              aria-label="Open sidebar"
+              className="lg:hidden w-10 h-10 rounded-[var(--sys-radius-sm)] flex items-center justify-center text-[var(--sys-on-surface)] hover:bg-[var(--sys-surface-container)] cursor-pointer shrink-0"
+              aria-label="Open navigation"
             >
-              <span className="material-symbols-rounded">menu</span>
+              <Menu className="w-5 h-5" />
             </button>
-            <div className="flex-1 relative hidden sm:block">
-              <span className="absolute left-6 top-1/2 -translate-y-1/2 material-symbols-rounded text-slate-400 text-lg">search</span>
-              <input
-                type="text"
-                placeholder="Search research..."
-                className="w-full h-12 xl:h-14 pl-14 pr-6 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-brand-500/10 placeholder-slate-400 text-sm font-medium transition-all"
-              />
-            </div>
+
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm min-w-0">
+              <Link
+                to="/dashboard"
+                className="text-[var(--sys-on-surface-tertiary)] hover:text-[var(--sys-on-surface)] no-underline whitespace-nowrap shrink-0"
+              >
+                Workspace
+              </Link>
+              <ChevronRight className="w-3.5 h-3.5 text-[var(--sys-on-surface-quaternary)] shrink-0" />
+              <span className="font-semibold text-[var(--sys-on-surface)] truncate">
+                {currentSectionTitle}
+              </span>
+            </nav>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-6">
-            {/* AI Credits Indicator */}
+          {/* Right: Live Search + Theme Toggle + Primary Action */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="relative hidden md:block w-64 lg:w-72">
+              <Search className="w-4 h-4 text-[var(--sys-on-surface-tertiary)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 180)}
+                placeholder="Search studies, people, tasks..."
+                aria-label="Search workspace"
+                className="w-full h-10 pl-9 pr-3 text-xs sys-input"
+              />
+
+              {searchFocused && searchQuery.trim().length > 0 && (
+                <div className="absolute right-0 mt-2 w-80 rounded-[var(--sys-radius-md)] bg-[var(--sys-surface-lowest)] border border-[var(--sys-outline)] shadow-lg overflow-hidden z-40">
+                  {searchResults.length > 0 ? (
+                    <ul className="divide-y divide-[var(--sys-outline-variant)]">
+                      {searchResults.map((hit) => (
+                        <li key={hit.id}>
+                          <button
+                            type="button"
+                            onMouseDown={() => {
+                              setSearchQuery('');
+                              navigate(hit.to);
+                            }}
+                            className="w-full text-left px-4 py-2.5 hover:bg-[var(--sys-surface-low)] transition-colors cursor-pointer"
+                          >
+                            <p className="text-xs font-semibold text-[var(--sys-on-surface)] truncate">
+                              {hit.label}
+                            </p>
+                            <p className="text-[11px] text-[var(--sys-on-surface-tertiary)]">
+                              {hit.meta}
+                            </p>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="px-4 py-3 text-xs text-[var(--sys-on-surface-tertiary)]">
+                      No matching studies, participants, or tasks.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <button
-              onClick={() => setIsModalOpen(true)}
-              className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2 sm:py-2.5 rounded-2xl border transition-all active:scale-95 group shadow-sm ${credits < 5
-                ? 'bg-rose-50 border-rose-100 text-rose-600 hover:bg-rose-100'
-                : 'bg-brand-50 border-brand-100 text-brand-600 hover:bg-brand-100'
-                }`}
+              type="button"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              className="w-10 h-10 rounded-[var(--sys-radius-sm)] sys-btn-secondary flex items-center justify-center cursor-pointer shrink-0"
             >
-              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shadow-inner ${credits < 5 ? 'bg-rose-500 text-white' : 'bg-brand-600 text-white'
-                }`}>
-                <span className="material-symbols-rounded text-xs sm:text-sm animate-pulse">psychology</span>
-              </div>
-              <div className="text-left hidden xs:block">
-                <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest opacity-80 leading-none mb-0.5 sm:mb-1">AI Credits</p>
-                <p className="text-xs sm:text-sm font-bold leading-none tracking-tight">{credits.toFixed(1)} hrs</p>
-              </div>
-              <div className={`hidden sm:flex ml-1 sm:ml-2 w-6 h-6 rounded-lg items-center justify-center transition-all ${
-                credits < 5 
-                ? 'text-rose-600 bg-rose-100/50 group-hover:bg-rose-500 group-hover:text-white' 
-                : 'bg-brand-100 text-brand-600 group-hover:bg-brand-600 group-hover:text-white'
-              }`}>
-                <span className="material-symbols-rounded text-xs">add</span>
-              </div>
+              {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </button>
 
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button className="hidden sm:flex w-10 h-10 xl:w-12 xl:h-12 rounded-2xl bg-white border border-slate-100 items-center justify-center shadow-sm hover:shadow-md transition-all">
-                <span className="material-symbols-rounded text-slate-500 text-lg">notifications</span>
-              </button>
-              <div className="flex items-center gap-3 xl:pl-6 xl:border-l xl:border-slate-100">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-slate-900 leading-tight">
-                    {currentUser?.displayName || (currentUser?.email?.split('@')[0]) || 'User'}
-                  </p>
-                  <p className="text-[11px] text-brand-600 font-bold uppercase tracking-wider">Project Lead</p>
-                </div>
-                <div className="w-10 h-10 xl:w-12 xl:h-12 rounded-2xl bg-indigo-100 border-2 border-white shadow-premium overflow-hidden">
-                  <img src={currentUser?.photoURL || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150"} alt="User Profile" className="w-full h-full object-cover" />
-                </div>
-              </div>
-            </div>
+            <Link
+              to="/dashboard/create"
+              className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 text-xs sys-btn-primary whitespace-nowrap shrink-0 no-underline"
+            >
+              New Study
+            </Link>
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 xl:p-12 overflow-y-auto">
-          <div className="max-w-[1400px] mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="max-w-[1280px] mx-auto">
             <Outlet />
           </div>
         </main>
@@ -197,49 +365,39 @@ const DashboardLayout: React.FC = () => {
         onPurchase={handlePurchase}
       />
     </div>
-
   );
 };
 
-interface SidebarLinkProps {
+interface SidebarItemProps {
   to: string;
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   end?: boolean;
+  count?: number;
+  onNavigate?: () => void;
 }
 
-const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label, end }) => (
+const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon, label, end, count, onNavigate }) => (
   <NavLink
     to={to}
     end={end}
-    className={({ isActive }) => `
-      flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 group
-      ${isActive
-        ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30'
-        : 'text-slate-500 hover:text-brand-600 hover:bg-brand-50'}
-    `}
+    onClick={onNavigate}
+    className={({ isActive }) =>
+      `flex items-center justify-between gap-2.5 px-3 min-h-[40px] rounded-[var(--sys-radius-sm)] text-sm font-medium transition-colors no-underline ${
+        isActive
+          ? 'bg-[var(--sys-primary-container)] text-[var(--sys-on-primary-container)] font-semibold'
+          : 'text-[var(--sys-on-surface-secondary)] hover:bg-[var(--sys-surface-low)] hover:text-[var(--sys-on-surface)]'
+      }`
+    }
   >
-    {({ isActive }) => (
-      <>
-        <span className={`material-symbols-rounded ${isActive ? 'text-white' : 'text-slate-600 group-hover:text-brand-600'} transition-colors`}>
-          {icon}
-        </span>
-        {label}
-      </>
+    <span className="flex items-center gap-2.5 min-w-0 truncate">
+      <span className="shrink-0">{icon}</span>
+      <span className="truncate">{label}</span>
+    </span>
+    {typeof count === 'number' && count > 0 && (
+      <span className="text-xs font-mono tabular-nums opacity-80 shrink-0">{count}</span>
     )}
   </NavLink>
-);
-
-const TeamMember: React.FC<{ name: string; status: string; avatar: string }> = ({ name, status, avatar }) => (
-  <div className="flex items-center gap-3 group cursor-pointer">
-    <div className="w-8 h-8 rounded-xl bg-slate-100 overflow-hidden shadow-sm group-hover:scale-105 transition-transform">
-      <img src={avatar} alt={name} className="w-full h-full object-cover" />
-    </div>
-    <div>
-      <p className="text-xs font-bold text-slate-800 leading-tight group-hover:text-brand-600 transition-colors">{name}</p>
-      <p className="text-[10px] text-slate-700 font-medium">{status}</p>
-    </div>
-  </div>
 );
 
 export default DashboardLayout;

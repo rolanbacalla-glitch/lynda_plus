@@ -1,143 +1,225 @@
-import React, { useState } from 'react';
-
-interface Criteria {
-  role: string;
-  skills: string;
-  experience: string;
-  location: string;
-}
+import React, { useMemo, useState } from 'react';
+import { Users, Check } from 'lucide-react';
+import { useResearch } from '../contexts/ResearchContext';
+import { ASSETS } from '../data/mockData';
 
 const RecruitmentEngine: React.FC = () => {
-  const [criteria, setCriteria] = useState<Criteria>({
-    role: 'Senior Product Designer',
-    skills: 'Figma, React, SaaS',
-    experience: '5+ Years',
-    location: 'Remote / Global'
-  });
+  const { addCampaign } = useResearch();
+  const [campaignName, setCampaignName] = useState('Q2 Billing & Seats Discovery');
+  const [role, setRole] = useState('Senior Product Designer');
+  const [skills, setSkills] = useState('Figma, Design Systems, B2B SaaS');
+  const [experience, setExperience] = useState('Senior / Lead');
+  const [region, setRegion] = useState('Remote Global');
+  const [goal, setGoal] = useState(25);
+  const [launched, setLaunched] = useState(false);
 
-  const [isMatching, setIsMatching] = useState(false);
+  const estimatedPool = useMemo(() => {
+    const base = region === 'Remote Global' ? 68 : region === 'North America' ? 42 : 34;
+    const expMod = experience === 'Executive' ? -18 : experience === 'Senior / Lead' ? -6 : 12;
+    const skillCount = skills.split(',').filter((s) => s.trim()).length;
+    return Math.max(12, base + expMod - skillCount * 4);
+  }, [region, experience, skills]);
 
-  const startMatching = () => {
-    setIsMatching(true);
-    setTimeout(() => setIsMatching(false), 2500);
+  const handleLaunch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaignName.trim()) return;
+    addCampaign({
+      name: campaignName.trim(),
+      targetRole: role.trim() || 'Product Professional',
+      skills: skills.trim() || 'General SaaS',
+      region,
+      status: 'Sourcing',
+      goal,
+    });
+    setLaunched(true);
+    window.setTimeout(() => setLaunched(false), 3000);
   };
 
   return (
-    <div className="bg-white rounded-[40px] border border-slate-100 shadow-premium p-10 space-y-10 relative overflow-hidden group">
-      {/* Decorative Gradient Background */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-50/20 rounded-full -mr-[250px] -mt-[250px] blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
-
-      <div className="flex items-start justify-between relative">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="px-3 py-1 bg-brand-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest shadow-sm">Agentic Mode</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-          <h2 className="text-3xl font-bold font-display text-slate-900 tracking-tight">Recruitment Targeting</h2>
-          <p className="text-slate-500 max-w-sm font-medium">Define your target persona and let the agentic recruiter source the perfect matches.</p>
+    <form
+      onSubmit={handleLaunch}
+      className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-6 md:p-8 space-y-6"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[var(--sys-outline-variant)]">
+        <div>
+          <h2 className="text-lg font-bold text-[var(--sys-on-surface)]">
+            Audience Targeting Builder
+          </h2>
+          <p className="text-xs text-[var(--sys-on-surface-secondary)] mt-0.5">
+            Define persona filters to estimate available verified panelists and launch sourcing.
+          </p>
         </div>
-        <div className="w-16 h-16 bg-slate-50 rounded-3xl border border-slate-100 flex items-center justify-center shadow-inner group-hover:rotate-6 transition-transform">
-          <span className="material-symbols-rounded text-brand-600 text-3xl">psychology</span>
-        </div>
+        <span className="text-xs font-mono text-[var(--sys-on-surface-tertiary)] tabular-nums">
+          Pool: 12,400 verified members
+        </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-        <div className="space-y-6">
-          {/* Inputs */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest pl-1">Primary Role</label>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div className="lg:col-span-7 space-y-4">
+          <div className="space-y-1.5">
+            <label
+              htmlFor="campaign-name"
+              className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]"
+            >
+              Campaign Name
+            </label>
             <input
+              id="campaign-name"
               type="text"
-              value={criteria.role}
-              onChange={(e) => setCriteria({ ...criteria, role: e.target.value })}
-              className="w-full h-14 px-6 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 text-sm font-bold text-slate-800 transition-all shadow-sm"
-              placeholder="e.g. Senior Software Engineer"
+              required
+              value={campaignName}
+              onChange={(e) => setCampaignName(e.target.value)}
+              className="w-full h-10 px-3.5 text-sm sys-input"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest pl-1">Key Skills & Stack</label>
-            <input
-              type="text"
-              value={criteria.skills}
-              onChange={(e) => setCriteria({ ...criteria, skills: e.target.value })}
-              className="w-full h-14 px-6 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 text-sm font-bold text-slate-800 transition-all shadow-sm"
-              placeholder="e.g. React, Node, AI"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest pl-1">Experience</label>
-              <select 
-                title="Select Experience Level"
-                aria-label="Experience Level"
-                className="w-full h-14 px-6 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 text-sm font-bold text-slate-800 transition-all shadow-sm"
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="target-role"
+                className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]"
               >
-                <option>Intern / Junior</option>
-                <option>Mid-Level</option>
-                <option selected>Senior / Lead</option>
-                <option>Executive</option>
+                Primary Role
+              </label>
+              <input
+                id="target-role"
+                type="text"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full h-10 px-3.5 text-sm sys-input"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="target-skills"
+                className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]"
+              >
+                Skills & Tools
+              </label>
+              <input
+                id="target-skills"
+                type="text"
+                value={skills}
+                onChange={(e) => setSkills(e.target.value)}
+                className="w-full h-10 px-3.5 text-sm sys-input"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="target-exp"
+                className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]"
+              >
+                Seniority
+              </label>
+              <select
+                id="target-exp"
+                value={experience}
+                onChange={(e) => setExperience(e.target.value)}
+                className="w-full h-10 px-3 text-sm sys-input"
+              >
+                <option value="Mid-Level">Mid-Level</option>
+                <option value="Senior / Lead">Senior / Lead</option>
+                <option value="Executive">Executive</option>
               </select>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-600 uppercase tracking-widest pl-1">Region</label>
-              <select 
-                title="Select Target Region"
-                aria-label="Target Region"
-                className="w-full h-14 px-6 rounded-2xl bg-slate-50 border border-slate-100 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 text-sm font-bold text-slate-800 transition-all shadow-sm"
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="target-region"
+                className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]"
               >
-                <option>North America</option>
-                <option>Europe</option>
-                <option selected>Remote Global</option>
-                <option>APAC</option>
+                Region
+              </label>
+              <select
+                id="target-region"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className="w-full h-10 px-3 text-sm sys-input"
+              >
+                <option value="Remote Global">Remote Global</option>
+                <option value="North America">North America</option>
+                <option value="Europe & UK">Europe & UK</option>
+                <option value="APAC">APAC</option>
               </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="target-goal"
+                className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]"
+              >
+                Participant Goal
+              </label>
+              <input
+                id="target-goal"
+                type="number"
+                min={5}
+                max={200}
+                value={goal}
+                onChange={(e) => setGoal(Number(e.target.value))}
+                className="w-full h-10 px-3.5 text-sm font-mono sys-input tabular-nums"
+              />
             </div>
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-[32px] p-8 flex flex-col items-center justify-center text-center space-y-6 relative group/card overflow-hidden shadow-2xl">
-          {/* Matching Animation State */}
-          {isMatching ? (
-            <div className="space-y-6 animate-pulse">
-              <div className="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto border border-indigo-400/30">
-                <span className="material-symbols-rounded text-white text-4xl animate-spin">sync</span>
-              </div>
-              <div>
-                <h4 className="text-xl font-bold text-white mb-2">Analysing Global Panel...</h4>
-                <p className="text-indigo-200/60 text-xs font-medium uppercase tracking-widest">Sourcing candidates from 12k+ nodes</p>
-              </div>
+        {/* Dynamic Match Estimator */}
+        <div className="lg:col-span-5 rounded-[var(--sys-radius-md)] bg-[var(--sys-surface-low)] border border-[var(--sys-outline-variant)] p-6 flex flex-col justify-between gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-[var(--sys-on-surface-tertiary)]">
+                Estimated Match Pool
+              </span>
+              <Users className="w-4 h-4 text-[var(--sys-primary)]" />
             </div>
-          ) : (
-            <>
-              <div className="flex -space-x-4 mb-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-12 h-12 rounded-2xl border-4 border-slate-900 bg-slate-800 overflow-hidden shadow-xl transform group-hover/card:scale-110 transition-transform">
-                    <img 
-                      src={`https://i.pravatar.cc/150?u=${i + 10}`} 
-                      alt={`Potential Participant ${i}`}
-                      title={`Potential Participant Match ${i}`}
-                      className="w-full h-full object-cover grayscale group-hover/card:grayscale-0 transition-all duration-500" 
-                    />
-                  </div>
+
+            <div className="tabular-nums">
+              <p className="text-3xl font-bold font-mono text-[var(--sys-on-surface)]">
+                {estimatedPool} matches
+              </p>
+              <p className="text-xs text-[var(--sys-on-surface-secondary)] mt-1">
+                Est. fill time: {estimatedPool > goal * 1.5 ? 'Under 12 hours' : '24–36 hours'} · 94% show-up reliability
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <div className="flex -space-x-2">
+                {[ASSETS.avatarSarah, ASSETS.avatarMarcus, ASSETS.avatarElena].map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt="Matched verified panelist"
+                    referrerPolicy="no-referrer"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-[var(--sys-surface-low)]"
+                  />
                 ))}
-                <div className="w-12 h-12 rounded-2xl border-4 border-slate-900 bg-brand-600 flex items-center justify-center text-white text-xs font-bold shadow-xl">
-                  +12
-                </div>
               </div>
-              <div className="space-y-2">
-                <h4 className="text-2xl font-bold text-white">44 Potential<br />Matches Found</h4>
-                <p className="text-slate-200 text-sm font-medium">Estimated 94% fit based on AI resonance scores.</p>
-              </div>
-              <button
-                onClick={startMatching}
-                className="bg-brand-500 text-white px-10 py-4 rounded-2xl font-bold hover:bg-brand-400 transition-all shadow-lg shadow-brand-500/20 w-full"
-              >
-                Match Participants
-              </button>
-            </>
-          )}
+              <span className="text-xs text-[var(--sys-on-surface-tertiary)] tabular-nums">
+                +{estimatedPool - 3} more verified panelists
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full min-h-[42px] px-5 py-2.5 text-sm sys-btn-primary inline-flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {launched ? (
+              <>
+                <Check className="w-4 h-4" />
+                <span>Campaign Launched</span>
+              </>
+            ) : (
+              <span>Launch Sourcing Campaign</span>
+            )}
+          </button>
         </div>
       </div>
-    </div>
+    </form>
   );
 };
 

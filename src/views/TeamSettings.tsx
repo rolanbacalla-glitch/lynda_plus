@@ -1,153 +1,264 @@
 import React, { useState } from 'react';
-import { mockTeamMembers } from '../data/mockData';
+import { Moon, ShieldCheck, Sun, UserPlus, X } from 'lucide-react';
+import { useResearch } from '../contexts/ResearchContext';
+import { useTheme } from '../contexts/ThemeContext';
+import type { TeamMember } from '../data/mockData';
+
+const ROLE_GUIDE: { name: TeamMember['role']; desc: string }[] = [
+  { name: 'Admin', desc: 'Manage billing, SSO policies, data residency, and workspace seats.' },
+  { name: 'Editor', desc: 'Create studies, moderate live sessions, and promote insights to tasks.' },
+  { name: 'Viewer', desc: 'Watch highlight reels, inspect synthesis reports, and leave comments.' },
+];
 
 const TeamSettings: React.FC = () => {
+  const { teamMembers, inviteTeamMember, updateTeamRole } = useResearch();
+  const { theme, setTheme } = useTheme();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<TeamMember['role']>('Editor');
 
-  const roles = [
-    { name: 'Admin', desc: 'Full access to workspace settings and billing.' },
-    { name: 'Editor', desc: 'Can create and edit studies, view all insights.' },
-    { name: 'Viewer', desc: 'Can only view studies and shared reports.' },
-  ];
+  const handleInvite = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteEmail.trim()) return;
+    inviteTeamMember(inviteEmail.trim(), inviteRole);
+    setInviteEmail('');
+    setInviteRole('Editor');
+    setIsInviteOpen(false);
+  };
 
   return (
-    <div className="view-container animate-fade-in">
-      <div className="flex justify-between items-end mb-12">
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="view-title">Workspace Settings</h1>
-          <p className="view-subtitle">Manage your research team and global permissions.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--sys-on-surface)]">
+            Team & Workspace Settings
+          </h1>
+          <p className="text-sm text-[var(--sys-on-surface-secondary)] mt-1">
+            Manage researcher permissions, security controls, and interface appearance.
+          </p>
         </div>
-        <button 
+
+        <button
+          type="button"
           onClick={() => setIsInviteOpen(true)}
-          className="bg-brand-600 text-white px-8 py-3.5 rounded-2xl font-bold flex items-center gap-2 shadow-xl shadow-brand-500/20 hover:scale-105 transition-all"
+          className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs sys-btn-primary whitespace-nowrap shrink-0 cursor-pointer self-start sm:self-auto"
         >
-          <span className="material-symbols-rounded">person_add</span> Invite Member
+          <UserPlus className="w-3.5 h-3.5" />
+          <span>Invite Member</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Main Team Roster */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="card glass">
-            <h3 className="section-title mb-8 flex items-center gap-3">
-              <span className="w-10 h-10 rounded-xl bg-indigo-50 text-brand-600 flex items-center justify-center">
-                <span className="material-symbols-rounded">group</span>
-              </span>
-              Active Research Team
-            </h3>
-            
-            <div className="space-y-4">
-              {mockTeamMembers.map((member) => (
-                <div key={member.id} className="p-6 rounded-[32px] bg-slate-50/50 hover:bg-white border border-transparent hover:border-slate-100 transition-all flex items-center justify-between group">
-                  <div className="flex items-center gap-5">
-                    <div className="relative">
-                      <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-sm border-2 border-white">
-                        <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
-                      </div>
-                      <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${member.status === 'online' ? 'bg-emerald-500' : member.status === 'editing' ? 'bg-brand-500' : 'bg-slate-300'}`} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900">{member.name}</h4>
-                      <p className="text-xs text-slate-600 font-medium">{member.email}</p>
-                    </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Roster */}
+        <section className="lg:col-span-8 rounded-[var(--sys-radius-lg)] sys-surface-lowest overflow-hidden">
+          <div className="p-5 border-b border-[var(--sys-outline-variant)] flex items-center justify-between">
+            <h2 className="text-base font-bold text-[var(--sys-on-surface)]">Workspace Members</h2>
+            <span className="text-xs font-mono text-[var(--sys-on-surface-tertiary)] tabular-nums">
+              {teamMembers.length} seats used
+            </span>
+          </div>
+
+          <div className="divide-y divide-[var(--sys-outline-variant)]">
+            {teamMembers.map((member) => (
+              <div
+                key={member.id}
+                className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <img
+                    src={member.avatar}
+                    alt={member.name}
+                    referrerPolicy="no-referrer"
+                    className="w-10 h-10 rounded-[var(--sys-radius-sm)] object-cover border border-[var(--sys-outline-variant)] shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[var(--sys-on-surface)] truncate">
+                      {member.name}
+                    </p>
+                    <p className="text-xs text-[var(--sys-on-surface-tertiary)] truncate">
+                      {member.email} · {member.lastActive}
+                    </p>
                   </div>
-                  
-                  <div className="flex items-center gap-8">
-                    <div className="text-right">
-                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${member.role === 'Admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>
-                        {member.role}
-                      </span>
-                      {member.status === 'editing' && (
-                        <p className="text-[10px] font-bold text-brand-500 mt-1 animate-pulse">Editing Studies</p>
-                      )}
-                    </div>
-                    <button className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 hover:text-slate-600 hover:border-slate-300 transition-all">
-                      <span className="material-symbols-rounded">more_vert</span>
-                    </button>
-                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <select
+                    value={member.role}
+                    onChange={(e) =>
+                      updateTeamRole(member.id, e.target.value as TeamMember['role'])
+                    }
+                    aria-label={`Change role for ${member.name}`}
+                    className="h-9 px-3 text-xs font-semibold sys-input"
+                  >
+                    <option value="Admin">Admin</option>
+                    <option value="Editor">Editor</option>
+                    <option value="Viewer">Viewer</option>
+                  </select>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Right Sidebar: Appearance, Role Guide & Compliance */}
+        <div className="lg:col-span-4 space-y-6">
+          <section className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-5 space-y-4">
+            <h2 className="text-sm font-bold text-[var(--sys-on-surface)]">Appearance</h2>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={`min-h-[42px] px-3 py-2 text-xs font-semibold rounded-[var(--sys-radius-md)] border inline-flex items-center justify-center gap-2 cursor-pointer transition-colors ${
+                  theme === 'light'
+                    ? 'bg-[var(--sys-primary-container)] border-[var(--sys-primary)] text-[var(--sys-on-primary-container)]'
+                    : 'bg-[var(--sys-surface-low)] border-[var(--sys-outline-variant)] text-[var(--sys-on-surface-secondary)]'
+                }`}
+              >
+                <Sun className="w-4 h-4" />
+                <span>Light</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={`min-h-[42px] px-3 py-2 text-xs font-semibold rounded-[var(--sys-radius-md)] border inline-flex items-center justify-center gap-2 cursor-pointer transition-colors ${
+                  theme === 'dark'
+                    ? 'bg-[var(--sys-primary-container)] border-[var(--sys-primary)] text-[var(--sys-on-primary-container)]'
+                    : 'bg-[var(--sys-surface-low)] border-[var(--sys-outline-variant)] text-[var(--sys-on-surface-secondary)]'
+                }`}
+              >
+                <Moon className="w-4 h-4" />
+                <span>Dark</span>
+              </button>
+            </div>
+          </section>
+
+          <section className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-5 space-y-4">
+            <h2 className="text-sm font-bold text-[var(--sys-on-surface)]">Role Permissions</h2>
+            <div className="space-y-3.5">
+              {ROLE_GUIDE.map((r) => (
+                <div key={r.name}>
+                  <p className="text-xs font-semibold text-[var(--sys-primary)]">{r.name}</p>
+                  <p className="text-xs text-[var(--sys-on-surface-secondary)] leading-relaxed mt-0.5">
+                    {r.desc}
+                  </p>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* Roles & Info Sidebar */}
-        <div className="space-y-8">
-          <div className="card glass bg-slate-900 text-white">
-            <h3 className="text-lg font-bold mb-6 font-display">Role Definitions</h3>
-            <div className="space-y-6">
-              {roles.map((role) => (
-                <div key={role.name} className="space-y-1">
-                  <p className="text-xs font-black uppercase tracking-widest text-brand-400">{role.name}</p>
-                  <p className="text-sm text-slate-600 leading-relaxed font-medium">{role.desc}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-10 p-5 rounded-2xl bg-white/5 border border-white/10 italic text-xs text-slate-600">
-              "Research teams with balanced roles report 32% faster insight synthesis."
-            </div>
-          </div>
-
-          <div className="card glass overflow-hidden relative">
-            <h3 className="text-lg font-bold mb-2 text-slate-900">Security Audit</h3>
-            <p className="text-xs text-slate-500 font-medium mb-6">Last verified: 14 mins ago</p>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold">
-                <span className="material-symbols-rounded text-lg">verified_user</span>
-                SSO: Enforced
+          <section className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-5 space-y-3">
+            <h2 className="text-sm font-bold text-[var(--sys-on-surface)] inline-flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[var(--sys-primary)]" />
+              <span>Security Governance</span>
+            </h2>
+            <div className="text-xs space-y-2 text-[var(--sys-on-surface-secondary)]">
+              <div className="flex justify-between py-1.5 border-b border-[var(--sys-outline-variant)]">
+                <span>SAML SSO Enforcement</span>
+                <span className="font-mono font-semibold" style={{ color: 'var(--sys-success-fg)' }}>
+                  Active
+                </span>
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold">
-                <span className="material-symbols-rounded text-lg">history</span>
-                Audit Logging: Active
+              <div className="flex justify-between py-1.5 border-b border-[var(--sys-outline-variant)]">
+                <span>Privacy Shield Default</span>
+                <span className="font-mono font-semibold" style={{ color: 'var(--sys-success-fg)' }}>
+                  Enabled
+                </span>
+              </div>
+              <div className="flex justify-between py-1.5">
+                <span>Data Residency</span>
+                <span className="font-mono font-semibold text-[var(--sys-on-surface)]">EU-West</span>
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </div>
 
-      {/* Invite Modal Overlay */}
+      {/* Invite Modal */}
       {isInviteOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 animate-in fade-in duration-300">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setIsInviteOpen(false)} />
-          <div className="bg-white rounded-[48px] p-12 w-full max-w-xl relative shadow-2xl animate-in zoom-in-95 duration-300">
-            <button className="absolute top-8 right-8 text-slate-300 hover:text-slate-900 transition-colors" onClick={() => setIsInviteOpen(false)}>
-              <span className="material-symbols-rounded text-3xl">close</span>
-            </button>
-            
-            <div className="text-center mb-10">
-              <div className="w-20 h-20 rounded-3xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-6">
-                <span className="material-symbols-rounded text-4xl">mail</span>
-              </div>
-              <h2 className="text-3xl font-bold text-slate-900 font-display">Expand the Team</h2>
-              <p className="text-slate-500 font-medium mt-2">Send an encrypted invitation to your colleagues.</p>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="invite-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            onClick={() => setIsInviteOpen(false)}
+            aria-hidden="true"
+          />
+          <form
+            onSubmit={handleInvite}
+            className="relative z-10 w-full max-w-md rounded-[var(--sys-radius-lg)] bg-[var(--sys-surface-lowest)] border border-[var(--sys-outline)] p-6 space-y-5 shadow-xl"
+          >
+            <div className="flex items-center justify-between">
+              <h2 id="invite-modal-title" className="text-lg font-bold text-[var(--sys-on-surface)]">
+                Invite Team Member
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsInviteOpen(false)}
+                aria-label="Close modal"
+                className="w-8 h-8 rounded-[var(--sys-radius-sm)] flex items-center justify-center text-[var(--sys-on-surface-secondary)] hover:bg-[var(--sys-surface-container)] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-4">Colleague Email</label>
-                <input 
-                  type="email" 
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="invite-email"
+                  className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]"
+                >
+                  Work Email
+                </label>
+                <input
+                  id="invite-email"
+                  type="email"
+                  required
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="name@company.com"
-                  className="w-full bg-slate-50 border-2 border-transparent focus:border-brand-600 focus:bg-white rounded-[24px] p-5 outline-none transition-all font-medium text-slate-900" 
+                  placeholder="colleague@company.com"
+                  className="w-full h-11 px-3.5 text-sm sys-input"
                 />
               </div>
-              
-              <div className="grid grid-cols-3 gap-3">
-                {['Viewer', 'Editor', 'Admin'].map(r => (
-                   <button key={r} className="p-4 rounded-2xl border-2 border-slate-100 hover:border-brand-600 hover:bg-brand-50 text-xs font-bold text-slate-600 transition-all">
-                     {r}
-                   </button>
-                ))}
+
+              <div className="space-y-1.5">
+                <span className="block text-xs font-semibold text-[var(--sys-on-surface-secondary)]">
+                  Workspace Role
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['Viewer', 'Editor', 'Admin'] as const).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setInviteRole(r)}
+                      className={`min-h-[40px] text-xs font-semibold rounded-[var(--sys-radius-sm)] border cursor-pointer transition-colors ${
+                        inviteRole === r
+                          ? 'bg-[var(--sys-primary-container)] border-[var(--sys-primary)] text-[var(--sys-on-primary-container)]'
+                          : 'bg-[var(--sys-surface-low)] border-[var(--sys-outline-variant)] text-[var(--sys-on-surface-secondary)]'
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
               </div>
-              
-              <button className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-bold text-lg hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 mt-4">
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsInviteOpen(false)}
+                className="px-4 py-2 text-xs sys-btn-secondary cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="px-4 py-2 text-xs sys-btn-primary cursor-pointer">
                 Send Invitation
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
     </div>

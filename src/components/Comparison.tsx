@@ -1,69 +1,122 @@
 import React from 'react';
 
-const Comparison: React.FC = () => {
-  const comparisons = [
-    { feature: 'Search Strategy', legacy: 'Keyword & Manual Tags', lynda: 'Agentic Semantic Mapping' },
-    { feature: 'Bias Detection', legacy: 'Delayed (Post-Study)', lynda: 'Active (Real-time Co-pilot)' },
-    { feature: 'Insight Speed', legacy: 'Days (Manual Synthesis)', lynda: 'Minutes (Agentic Reasoning)' },
-    { feature: 'Transcription', legacy: 'Passive Text Output', lynda: 'Actionable Highlight Reels' },
-    { feature: 'Follow-ups', legacy: 'Static Scripts', lynda: 'Dynamic Agentic Prompting' },
-  ];
+const COMPARISONS = [
+  {
+    capability: 'Script Quality & Bias Control',
+    legacy: 'Manual peer review after fieldwork begins',
+    lynda: 'Real-time linguistic audit & 1-click neutral rewrites',
+  },
+  {
+    capability: 'Sensitive PII & Compliance',
+    legacy: 'Manual video blurring in post-production',
+    lynda: 'In-buffer face, card, and document Privacy Shield',
+  },
+  {
+    capability: 'Live Interview Guidance',
+    legacy: 'Static discussion guides in a separate document',
+    lynda: 'Contextual follow-up prompts synced to live transcript',
+  },
+  {
+    capability: 'Synthesis Turnaround',
+    legacy: '3–5 days of manual tagging & affinity sticky notes',
+    lynda: '1.8 hours median turnaround with timestamped clips',
+  },
+  {
+    capability: 'Stakeholder Handoff',
+    legacy: 'Static slide decks disconnected from sprint tracking',
+    lynda: 'Direct promotion of verified insights into tracked tasks',
+  },
+];
 
+const TESTIMONIALS = [
+  {
+    quote:
+      'We cut Checkout V2 synthesis from four days to a single afternoon. Catching two leading questions before launch saved us an entire round of rework.',
+    author: 'Hannah Lindqvist',
+    role: 'Staff Product Designer, Finway Payments',
+    outcome: '78% faster synthesis across 120 participants',
+  },
+  {
+    quote:
+      'Legal previously blocked live usability recordings on our billing screens. In-buffer Privacy Shield cleared compliance review in one week.',
+    author: 'David Okafor',
+    role: 'Head of Research Ops, CareBridge Health',
+    outcome: 'Zero PII incidents across 340+ sessions',
+  },
+];
+
+const Comparison: React.FC = () => {
   return (
-    <section className="py-20 md:py-36 bg-slate-50/30">
-      <div className="max-w-7xl mx-auto px-6 md:px-10 animate-fade-in text-center">
-        <div className="mb-14 md:mb-20">
-          <h2 className="text-4xl md:text-6xl font-display font-bold text-slate-900 tracking-tight mb-6 leading-tight">
-            Legacy Workflow vs. <span className="text-gradient">Agentic Future</span>
+    <section className="py-16 md:py-24 bg-[var(--sys-surface-low)] border-b border-[var(--sys-outline-variant)]">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 space-y-12">
+        <div className="max-w-2xl">
+          <p className="text-xs font-medium text-[var(--sys-primary)] mb-3">
+            03. Workflow Impact
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-[var(--sys-on-surface)] leading-tight mb-4">
+            Legacy research tooling vs. an active workspace.
           </h2>
-          <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed px-4">
-            Traditional platforms give you data. LyndaPlus gives you the answer.
+          <p className="text-base text-[var(--sys-on-surface-secondary)] leading-relaxed">
+            Replace disconnected survey forms, recording bots, and manual tagging spreadsheets with one coherent system.
           </p>
         </div>
-        
-        {/* Desktop Table: Hidden on Mobile */}
-        <div className="hidden md:block glass rounded-[40px] overflow-hidden shadow-premium border border-white/50 relative">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-slate-900/5 backdrop-blur-sm">
-                <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-slate-600 uppercase tracking-[0.2em] border-b border-indigo-50/50">Capability</th>
-                <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-slate-600 uppercase tracking-[0.2em] border-b border-indigo-50/50">Legacy Platforms</th>
-                <th className="px-8 md:px-12 py-8 text-[11px] font-bold text-brand-600 uppercase tracking-[0.2em] border-b border-brand-100/50 pr-0.5">LyndaPlus</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-indigo-50/50">
-              {comparisons.map((item, i) => (
-                <tr key={i} className="hover:bg-brand-50/30 transition-colors group">
-                  <td className="px-8 md:px-12 py-8 text-lg font-bold text-slate-900 tracking-tight">{item.feature}</td>
-                  <td className="px-8 md:px-12 py-8 text-[15px] font-medium text-slate-600">{item.legacy}</td>
-                  <td className="px-8 md:px-12 py-8 text-[15px] font-bold text-slate-800 underline decoration-2 decoration-brand-200 underline-offset-8 group-hover:decoration-brand-500 transition-all">{item.lynda}</td>
+
+        {/* Comparison Table */}
+        <div className="rounded-[var(--sys-radius-lg)] sys-surface-lowest overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[640px]">
+              <thead>
+                <tr className="border-b border-[var(--sys-outline-variant)] bg-[var(--sys-surface-low)]">
+                  <th className="py-4 px-6 text-xs font-semibold text-[var(--sys-on-surface-secondary)]">
+                    Workflow Stage
+                  </th>
+                  <th className="py-4 px-6 text-xs font-semibold text-[var(--sys-on-surface-tertiary)]">
+                    Legacy Tools
+                  </th>
+                  <th className="py-4 px-6 text-xs font-semibold text-[var(--sys-primary)]">
+                    LyndaPlus Workspace
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-[var(--sys-outline-variant)] text-sm">
+                {COMPARISONS.map((row) => (
+                  <tr key={row.capability} className="hover:bg-[var(--sys-surface-low)]/60 transition-colors">
+                    <td className="py-4 px-6 font-semibold text-[var(--sys-on-surface)]">
+                      {row.capability}
+                    </td>
+                    <td className="py-4 px-6 text-[var(--sys-on-surface-tertiary)]">
+                      {row.legacy}
+                    </td>
+                    <td className="py-4 px-6 font-medium text-[var(--sys-on-surface)]">
+                      {row.lynda}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* Mobile View: Cards (Hidden on Desktop) */}
-        <div className="md:hidden space-y-6">
-          {comparisons.map((item, i) => (
-            <div key={i} className="glass p-8 rounded-3xl border border-slate-100 shadow-sm text-left">
-              <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-black">0{i+1}</span>
-                {item.feature}
-              </h3>
-              
-              <div className="space-y-4">
-                <div className="p-5 rounded-2xl bg-white border border-slate-50">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Legacy Workflow</span>
-                  <p className="text-[14px] text-slate-500 font-medium leading-relaxed">{item.legacy}</p>
+        {/* Attributable Testimonials Adjacent to Claims */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {TESTIMONIALS.map((item) => (
+            <figure
+              key={item.author}
+              className="p-6 md:p-8 rounded-[var(--sys-radius-lg)] sys-surface-lowest flex flex-col justify-between gap-6"
+            >
+              <blockquote className="text-base text-[var(--sys-on-surface)] leading-relaxed">
+                “{item.quote}”
+              </blockquote>
+              <figcaption className="pt-4 border-t border-[var(--sys-outline-variant)] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--sys-on-surface)]">{item.author}</p>
+                  <p className="text-xs text-[var(--sys-on-surface-secondary)]">{item.role}</p>
                 </div>
-                
-                <div className="p-5 rounded-2xl bg-brand-50 border border-brand-100">
-                  <span className="text-[10px] font-bold text-brand-600 uppercase tracking-widest block mb-2 pr-0.5">LyndaPlus Agentic</span>
-                  <p className="text-[14px] text-brand-900 font-bold leading-relaxed">{item.lynda}</p>
-                </div>
-              </div>
-            </div>
+                <span className="text-xs font-mono font-medium text-[var(--sys-primary)] tabular-nums">
+                  {item.outcome}
+                </span>
+              </figcaption>
+            </figure>
           ))}
         </div>
       </div>

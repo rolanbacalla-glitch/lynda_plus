@@ -1,206 +1,305 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  PhoneOff,
+  Plus,
+  Send,
+  Sparkles,
+} from 'lucide-react';
 import PrivacyOverlay from '../components/PrivacyOverlay';
 import BiasPanel from '../components/BiasPanel';
-import { getSessionAnalysis, getConnectionStatus } from '../data/geminiService';
-import type { AIResponse } from '../data/geminiService';
+import { useResearch } from '../contexts/ResearchContext';
+import { ASSETS } from '../data/mockData';
+
+interface TranscriptEntry {
+  id: string;
+  speaker: 'Participant' | 'Moderator';
+  time: string;
+  text: string;
+  note?: string;
+}
+
+const SUGGESTED_FOLLOWUPS = [
+  'What did you expect to see when you clicked the address field?',
+  'Compared to your current tool, which part of this billing step felt clearest?',
+  'Walk me through what made you pause before selecting the plan tier.',
+];
+
+const INITIAL_TRANSCRIPT: TranscriptEntry[] = [
+  {
+    id: 'tr1',
+    speaker: 'Participant',
+    time: '12:44',
+    text: 'I am looking for where to enter my street address manually, because my studio suite does not show up in postal autocomplete.',
+    note: 'Friction noted',
+  },
+  {
+    id: 'tr2',
+    speaker: 'Moderator',
+    time: '12:45',
+    text: 'Thank you for sharing that. What did you expect to happen after typing the first few letters?',
+  },
+  {
+    id: 'tr3',
+    speaker: 'Participant',
+    time: '12:46',
+    text: 'Usually there is a secondary link right beneath the dropdown that lets me expand street, city, and postcode fields.',
+  },
+];
 
 const AgenticSession: React.FC = () => {
   const { projectId } = useParams();
-  const [sentiment, setSentiment] = useState<'neutral' | 'positive' | 'frustrated'>('neutral');
-  const [suggestedQuestion, setSuggestedQuestion] = useState<string>('');
-  const [showPrivacyShield, setShowPrivacyShield] = useState(true);
-  const [engagement, setEngagement] = useState<number>(92);
-  const [thinkingLog, setThinkingLog] = useState<string[]>([]);
+  const navigate = useNavigate();
+  const { projects, addInsight } = useResearch();
 
-  const status = getConnectionStatus();
+  const project = projects.find((p) => p.id === projectId) || projects[0];
+
+  const [showPrivacyShield, setShowPrivacyShield] = useState(true);
+  const [elapsedSeconds, setElapsedSeconds] = useState(765); // 12:45
+  const [transcript, setTranscript] = useState<TranscriptEntry[]>(INITIAL_TRANSCRIPT);
+  const [suggestionIdx, setSuggestionIdx] = useState(0);
+  const [moderatorInput, setModeratorInput] = useState('');
+  const [savedNotice, setSavedNotice] = useState(false);
 
   useEffect(() => {
-    const fetchAnalysis = async () => {
-      // Simulate real-time processing
-      const response: AIResponse = await getSessionAnalysis("Transcript snippet...");
-      setSentiment(response.sentiment);
-      setSuggestedQuestion(response.content);
-      setEngagement(response.engagementScore);
-
-      // Update thinking log with proactive agent thoughts
-      const potentialThoughts = [
-        "Analyzing participant's eye movement cadence...",
-        "Detected 350ms hesitation on CTA button.",
-        "Cross-referencing with Pricing Objection model...",
-        "Sentiment shifting based on linguistic markers.",
-        "Refining follow-up question for maximum clarity.",
-        "Scanning for micro-expressions in video feed...",
-        "Comparing current flow with Participant #12 history.",
-        "Synthesizing theme: 'Onboarding Friction'."
-      ];
-
-      // Add 1-2 new random thoughts to the top
-      setThinkingLog(prev => {
-        const newThoughts = [...potentialThoughts]
-          .sort(() => 0.5 - Math.random())
-          .slice(0, Math.floor(Math.random() * 2) + 1);
-        return [...newThoughts, ...prev].slice(0, 12);
-      });
-    };
-
-    const timer = setInterval(() => {
-      fetchAnalysis();
-    }, 6000);
-
-    fetchAnalysis(); // Initial call
-
-    return () => clearInterval(timer);
+    const interval = window.setInterval(() => {
+      setElapsedSeconds((s) => s + 1);
+    }, 1000);
+    return () => window.clearInterval(interval);
   }, []);
 
+  const formatTimer = (totalSec: number) => {
+    const mins = Math.floor(totalSec / 60)
+      .toString()
+      .padStart(2, '0');
+    const secs = (totalSec % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
+
+  const currentSuggestion = SUGGESTED_FOLLOWUPS[suggestionIdx % SUGGESTED_FOLLOWUPS.length];
+
+  const handleApplyFollowup = () => {
+    setTranscript((prev) => [
+      ...prev,
+      {
+        id: `tr-${Date.now()}`,
+        speaker: 'Moderator',
+        time: formatTimer(elapsedSeconds),
+        text: currentSuggestion,
+        note: 'Neutral follow-up used',
+      },
+    ]);
+    setSuggestionIdx((i) => i + 1);
+  };
+
+  const handleAddNote = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!moderatorInput.trim()) return;
+    setTranscript((prev) => [
+      ...prev,
+      {
+        id: `tr-${Date.now()}`,
+        speaker: 'Moderator',
+        time: formatTimer(elapsedSeconds),
+        text: moderatorInput.trim(),
+      },
+    ]);
+    setModeratorInput('');
+  };
+
+  const handleBookmarkInsight = () => {
+    const latestParticipantLine = [...transcript]
+      .reverse()
+      .find((entry) => entry.speaker === 'Participant');
+    addInsight({
+      projectId: project.id,
+      title: 'Manual address fallback missing beneath postal lookup',
+      description:
+        latestParticipantLine?.text ||
+        'Participant requested an explicit manual address entry link beneath the autocomplete dropdown.',
+      severity: 'Opportunity',
+      clipTime: formatTimer(elapsedSeconds),
+      participantName: 'Sarah Chen',
+      mentions: 1,
+    });
+    setSavedNotice(true);
+    window.setTimeout(() => setSavedNotice(false), 3000);
+  };
+
   return (
-    <div className="view-container animate-fade-in p-12 max-w-[1600px] mx-auto">
-      <div className="flex justify-between items-center mb-12">
-        <div className="flex items-center gap-6">
-          <div className="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-2xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-brand-500 opacity-0 group-hover:opacity-20 transition-opacity" />
-            <span className="material-symbols-rounded animate-pulse relative z-10">videocam</span>
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold font-display text-slate-800 tracking-tight leading-none mb-2">Live Session Analysis</h1>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-              <p className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Recording: Participant #48 • {projectId || 'DEMO-PROJECT'}</p>
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header Controls */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[var(--sys-outline-variant)]">
+        <div className="space-y-1">
+          <Link
+            to="/dashboard/sessions"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--sys-on-surface-tertiary)] hover:text-[var(--sys-on-surface)] no-underline"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>All Sessions</span>
+          </Link>
+          <h1 className="text-2xl font-bold text-[var(--sys-on-surface)]">{project.name}</h1>
+          <p className="text-xs text-[var(--sys-on-surface-secondary)] font-mono tabular-nums">
+            Live Session · Sarah Chen · Elapsed {formatTimer(elapsedSeconds)}
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={() => setShowPrivacyShield(!showPrivacyShield)}
-            className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${showPrivacyShield
-              ? 'bg-brand-50 border-brand-100 text-brand-600'
-              : 'bg-white border-slate-100 text-slate-600'
-              }`}
+            type="button"
+            onClick={() => setShowPrivacyShield((v) => !v)}
+            className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs sys-btn-secondary whitespace-nowrap cursor-pointer"
           >
-            {showPrivacyShield ? 'Privacy Shield On' : 'Privacy Shield Off'}
+            {showPrivacyShield ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            <span>{showPrivacyShield ? 'Privacy Shield On' : 'Privacy Shield Off'}</span>
           </button>
-          <button className="bg-rose-500 text-white px-8 py-2.5 rounded-xl font-bold text-sm hover:bg-rose-600 transition-all shadow-lg shadow-rose-200 active:scale-95">
-            End Session
+
+          <button
+            type="button"
+            onClick={handleBookmarkInsight}
+            className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs sys-btn-secondary whitespace-nowrap cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{savedNotice ? 'Saved to Insights' : 'Bookmark Moment'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate(`/dashboard/projects/${project.id}/insights`)}
+            className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 text-xs font-semibold rounded-[var(--sys-radius-md)] text-white whitespace-nowrap cursor-pointer transition-opacity hover:opacity-90"
+            style={{ backgroundColor: 'var(--ref-danger)' }}
+          >
+            <PhoneOff className="w-3.5 h-3.5" />
+            <span>End & Synthesize</span>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Live Video Feed Column */}
-        <div className="lg:col-span-8 space-y-8">
-          <div className="aspect-video bg-slate-950 rounded-[48px] shadow-2xl border-[12px] border-white relative overflow-hidden flex items-center justify-center group/video">
-            <div className="absolute top-8 left-8 flex items-center gap-3 z-30">
-              <div className="px-4 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/20">
-                <p className="text-[10px] font-bold text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  720p HD Stream
-                </p>
-              </div>
-            </div>
-
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left: Video Feed + Interactive Live Transcript */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="relative aspect-video rounded-[var(--sys-radius-lg)] overflow-hidden border border-[var(--sys-outline-variant)] bg-black">
+            <img
+              src={ASSETS.checkoutUi}
+              alt="Participant shared screen showing checkout prototype"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover opacity-90"
+            />
             {showPrivacyShield && <PrivacyOverlay />}
-            <div className={`absolute inset-0 z-10 pointer-events-none transition-all duration-1000 bg-sentiment-${sentiment}`} />
 
-            <div className="text-white opacity-20 text-center animate-pulse group-hover/video:opacity-40 transition-opacity">
-              <span className="material-symbols-rounded text-9xl">face</span>
-              <p className="font-mono mt-4">Participant Stream Simulation</p>
-            </div>
-
-            {/* AI Sentiment Bar Overlay */}
-            <div className="absolute bottom-10 left-10 right-10 z-30 flex items-center justify-between pointer-events-none translate-y-4 opacity-0 group-hover/video:translate-y-0 group-hover/video:opacity-100 transition-all duration-500">
-              <div className="p-6 rounded-[32px] bg-slate-900/90 backdrop-blur-xl border border-white/10 flex items-center gap-8 min-w-[300px] shadow-2xl">
-                <div>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Emotion</p>
-                  <p className={`text-sm font-bold uppercase ${sentiment === 'frustrated' ? 'text-rose-400' : sentiment === 'positive' ? 'text-emerald-400' : 'text-slate-300'}`}>
-                    {sentiment}
-                  </p>
-                </div>
-                <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <div className={`h-full transition-all duration-1000 ${sentiment === 'frustrated' ? 'bg-rose-400 w-[85%]' : sentiment === 'positive' ? 'bg-emerald-400 w-[40%]' : 'bg-slate-400 w-[60%]'}`} />
-                </div>
-                <div className="text-right">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Engagement</p>
-                  <p className="text-sm font-bold text-brand-400 uppercase">{engagement}%</p>
-                </div>
+            <div className="absolute bottom-4 left-4 right-4 z-30 flex items-center justify-between gap-4 bg-black/75 text-white px-4 py-2.5 rounded-[var(--sys-radius-md)] border border-white/15 text-xs tabular-nums">
+              <div className="flex items-center gap-3">
+                <span className="font-mono font-semibold">{formatTimer(elapsedSeconds)}</span>
+                <span aria-hidden="true" className="opacity-40">·</span>
+                <span>Sarah Chen (Shared Screen)</span>
               </div>
+              <span className="font-mono opacity-80">1080p Encrypted Stream</span>
             </div>
           </div>
 
-          {/* Transcript Panel */}
-          <div className="card glass p-10 border border-slate-100 bg-white">
-            <h3 className="text-xl font-bold text-slate-900 mb-8 font-display">Session Transcript</h3>
-            <div className="space-y-8">
-              <div className="flex gap-6 items-start">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 flex-shrink-0 font-bold text-xs shadow-sm">P</div>
-                <div className="space-y-1">
-                  <p className="text-[15px] text-slate-700 font-medium leading-relaxed italic">"I'm trying to find the checkout button, but it seems there are too many steps..."</p>
-                  <p className="text-[11px] text-slate-600 font-bold uppercase tracking-normal">12:45 PM • FRUSTRATION DETECTED</p>
-                </div>
-              </div>
-              <div className="flex gap-6 items-start">
-                <div className="w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600 flex-shrink-0 font-bold text-xs border border-brand-200 shadow-sm">M</div>
-                <p className="text-[15px] text-slate-800 font-medium leading-relaxed">"That's valuable. Which steps felt most unnecessary?"</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* AI Agent Sidebar Column */}
-        <div className="lg:col-span-4 space-y-8">
-          <div className="card glass p-8 bg-slate-900 border-none shadow-premium-dark relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-1 bg-brand-500" />
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-brand-500/30">
-                  <span className="material-symbols-rounded text-sm animate-spin-slow">psychology</span>
-                </div>
-                <h4 className="font-bold text-white text-sm uppercase tracking-widest tracking-tight">Agentic Co-pilot</h4>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${status.dotColor} animate-pulse`} />
-                <p className={`text-[10px] font-bold uppercase tracking-tight ${status.labelColor}`}>
-                  {status.isConnected ? 'Connected' : 'Demo Mode'}
-                </p>
-              </div>
+          {/* Live Transcript */}
+          <section className="rounded-[var(--sys-radius-lg)] sys-surface-lowest overflow-hidden">
+            <div className="p-5 border-b border-[var(--sys-outline-variant)] flex items-center justify-between">
+              <h2 className="text-base font-bold text-[var(--sys-on-surface)]">Live Transcript</h2>
+              <span className="text-xs font-mono text-[var(--sys-on-surface-tertiary)] tabular-nums">
+                {transcript.length} entries
+              </span>
             </div>
 
-            <div className="space-y-8">
-              <div>
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-4">Live Recommendation</p>
-                <div className="p-6 rounded-[24px] bg-white/10 border border-white/10 text-slate-200 text-sm font-semibold leading-relaxed shadow-sm">
-                  {suggestedQuestion || "Initializing AI analysis engine..."}
-                </div>
-              </div>
-              <button className="w-full bg-brand-600 text-white py-4 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-brand-500 transition-all shadow-xl shadow-brand-500/20 active:scale-95">
-                Apply AI Follow-up
-              </button>
-            </div>
-          </div>
-
-          {/* Thinking Trace Card */}
-          <div className="card glass p-8 bg-slate-950 border border-white/5 rounded-[40px] shadow-premium-dark">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <span className="material-symbols-rounded text-emerald-400 text-xs animate-spin-slow">sync</span>
-              </div>
-              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest tracking-tight">AI Thinking Trace</h4>
-            </div>
-
-            <div className="space-y-5 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-              {thinkingLog.map((thought, i) => (
-                <div key={i} className="flex gap-4 group animate-fade-in-up">
-                  <div className="w-1.5 h-1.5 rounded-full bg-brand-500 mt-1.5 flex-shrink-0 group-hover:scale-150 transition-transform shadow-[0_0_10px_rgba(37,99,235,0.8)]" />
-                  <p className="text-[12px] font-medium text-slate-300 leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
-                    {thought}
-                  </p>
+            <div className="p-5 space-y-4 max-h-[340px] overflow-y-auto">
+              {transcript.map((entry) => (
+                <div key={entry.id} className="flex items-start gap-3.5">
+                  <div
+                    className={`w-8 h-8 rounded-[var(--sys-radius-sm)] flex items-center justify-center text-xs font-bold shrink-0 ${
+                      entry.speaker === 'Moderator'
+                        ? 'bg-[var(--sys-primary-container)] text-[var(--sys-on-primary-container)]'
+                        : 'bg-[var(--sys-surface-container)] text-[var(--sys-on-surface)]'
+                    }`}
+                  >
+                    {entry.speaker === 'Moderator' ? 'M' : 'P'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-xs text-[var(--sys-on-surface-tertiary)] tabular-nums">
+                      <span className="font-semibold text-[var(--sys-on-surface)]">
+                        {entry.speaker}
+                      </span>
+                      <span aria-hidden="true">·</span>
+                      <span className="font-mono">{entry.time}</span>
+                      {entry.note && (
+                        <>
+                          <span aria-hidden="true">·</span>
+                          <span className="text-[var(--sys-primary)] font-medium">{entry.note}</span>
+                        </>
+                      )}
+                    </div>
+                    <p className="text-sm text-[var(--sys-on-surface-secondary)] leading-relaxed mt-1">
+                      {entry.text}
+                    </p>
+                  </div>
                 </div>
               ))}
-              {thinkingLog.length === 0 && (
-                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tighter animate-pulse text-center py-4">Synchronizing with stream...</p>
-              )}
             </div>
-          </div>
+
+            <form
+              onSubmit={handleAddNote}
+              className="p-4 border-t border-[var(--sys-outline-variant)] bg-[var(--sys-surface-low)] flex items-center gap-2.5"
+            >
+              <input
+                type="text"
+                value={moderatorInput}
+                onChange={(e) => setModeratorInput(e.target.value)}
+                placeholder="Log a moderator question or timestamped observation..."
+                aria-label="Log moderator question"
+                className="flex-1 h-10 px-3.5 text-sm sys-input"
+              />
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-xs sys-btn-primary whitespace-nowrap cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Log</span>
+              </button>
+            </form>
+          </section>
+        </div>
+
+        {/* Right: Co-Pilot Follow-up & Bias Audit Panel */}
+        <div className="lg:col-span-4 space-y-6">
+          <section className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-5 space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-bold text-[var(--sys-on-surface)] inline-flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[var(--sys-primary)]" />
+                <span>Suggested Follow-up</span>
+              </h3>
+              <span className="text-xs font-mono text-[var(--sys-on-surface-tertiary)] tabular-nums">
+                {suggestionIdx + 1}/{SUGGESTED_FOLLOWUPS.length}
+              </span>
+            </div>
+
+            <p className="p-4 rounded-[var(--sys-radius-md)] bg-[var(--sys-surface-low)] border border-[var(--sys-outline-variant)] text-sm text-[var(--sys-on-surface)] leading-relaxed">
+              “{currentSuggestion}”
+            </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleApplyFollowup}
+                className="flex-1 min-h-[40px] px-4 py-2 text-xs sys-btn-primary cursor-pointer"
+              >
+                Ask & Log in Transcript
+              </button>
+              <button
+                type="button"
+                onClick={() => setSuggestionIdx((i) => i + 1)}
+                className="min-h-[40px] px-3.5 py-2 text-xs sys-btn-secondary cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          </section>
 
           <BiasPanel />
         </div>

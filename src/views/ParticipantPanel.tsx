@@ -1,97 +1,344 @@
-import React, { useState } from 'react';
-import { mockParticipants } from '../data/mockData';
+import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Plus, Search, X } from 'lucide-react';
 import ParticipantCard from '../components/ParticipantCard';
+import { useResearch } from '../contexts/ResearchContext';
+import type { Participant } from '../data/mockData';
 
 const ParticipantPanel: React.FC = () => {
+  const { participants, toggleParticipantShortlist, addParticipant } = useResearch();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Shortlisted'>('All');
+  const [selected, setSelected] = useState<Participant | null>(null);
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
-  const filteredParticipants = mockParticipants.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         p.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         p.tags.some(t => t.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesStatus = statusFilter === 'All' || p.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const [newName, setNewName] = useState('');
+  const [newRole, setNewRole] = useState('');
+  const [newCompany, setNewCompany] = useState('');
+  const [newLocation, setNewLocation] = useState('London, UK');
+  const [newTags, setNewTags] = useState('SaaS, Usability');
+
+  const filteredParticipants = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    return participants.filter((p) => {
+      const matchesSearch =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        p.role.toLowerCase().includes(q) ||
+        p.company.toLowerCase().includes(q) ||
+        p.tags.some((t) => t.toLowerCase().includes(q));
+      const matchesStatus =
+        statusFilter === 'All' ||
+        (statusFilter === 'Active' && p.status === 'Active') ||
+        (statusFilter === 'Shortlisted' && p.shortlisted);
+      return matchesSearch && matchesStatus;
+    });
+  }, [participants, searchTerm, statusFilter]);
+
+  const handleAddParticipant = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim() || !newRole.trim()) return;
+    addParticipant({
+      name: newName.trim(),
+      age: 32,
+      role: newRole.trim(),
+      company: newCompany.trim() || 'Independent',
+      experience: '5 years',
+      location: newLocation.trim() || 'Remote',
+      status: 'Active',
+      reliability: 95,
+      tags: newTags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
+      recentNote: 'Added directly via Workspace Panel Directory.',
+    });
+    setNewName('');
+    setNewRole('');
+    setNewCompany('');
+    setIsAddOpen(false);
+  };
 
   return (
-    <div className="animate-fade-in space-y-10">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-indigo-50/50 pb-8">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight font-display text-slate-900">Participant Panel</h1>
-          <p className="text-slate-500 max-w-md font-medium">Manage and target your pool of verified research participants with agentic precision.</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--sys-on-surface)]">
+            Participant Panel
+          </h1>
+          <p className="text-sm text-[var(--sys-on-surface-secondary)] mt-1">
+            Verified research panelists with session reliability scores and expertise tags.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-white px-6 py-3 rounded-2xl font-bold border border-indigo-100/50 shadow-premium hover:border-brand-600 transition-all group">
-            <span className="material-symbols-rounded text-slate-600 group-hover:text-brand-600">download</span> 
-            <span className="text-sm">Import CRM</span>
-          </button>
-          <button className="flex items-center gap-2 bg-brand-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-brand-500/20 hover:bg-brand-700 transition-all active:scale-[0.98]">
-            <span className="material-symbols-rounded text-base">add</span>
-            <span className="text-sm">Manual Add</span>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Link
+            to="/dashboard/recruitment"
+            className="inline-flex items-center min-h-[40px] px-4 py-2 text-xs sys-btn-secondary whitespace-nowrap no-underline"
+          >
+            Launch Campaign
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsAddOpen(true)}
+            className="inline-flex items-center gap-1.5 min-h-[40px] px-4 py-2 text-xs sys-btn-primary whitespace-nowrap cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Participant</span>
           </button>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-col lg:flex-row items-center gap-4">
-        <div className="relative flex-1 w-full">
-          <span className="absolute left-5 top-1/2 -translate-y-1/2 material-symbols-rounded text-slate-600">search</span>
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-[var(--sys-on-surface-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search by name, role, or expertise (e.g. 'React', 'SaaS')..."
-            className="w-full h-14 pl-14 pr-6 rounded-2xl bg-white border border-slate-100 focus:ring-4 focus:ring-brand-500/5 focus:border-brand-500 placeholder-slate-400 text-sm font-medium transition-all shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by name, role, company, or expertise..."
+            aria-label="Search participants"
+            className="w-full h-11 pl-10 pr-4 text-sm sys-input"
           />
         </div>
-        <div className="flex items-center gap-2 bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/50 w-full lg:w-auto">
-          {(['All', 'Active', 'Inactive'] as const).map((status) => (
+
+        <div
+          role="tablist"
+          aria-label="Filter participants"
+          className="inline-flex items-center gap-1 p-1 rounded-[var(--sys-radius-md)] bg-[var(--sys-surface-container)] border border-[var(--sys-outline-variant)] self-start md:self-auto"
+        >
+          {(['All', 'Active', 'Shortlisted'] as const).map((tab) => (
             <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                statusFilter === status 
-                ? 'bg-white text-slate-900 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700'
+              key={tab}
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === tab}
+              onClick={() => setStatusFilter(tab)}
+              className={`min-h-[36px] px-4 py-1 text-xs font-semibold rounded-[var(--sys-radius-sm)] transition-colors cursor-pointer ${
+                statusFilter === tab
+                  ? 'bg-[var(--sys-surface-lowest)] text-[var(--sys-on-surface)] shadow-xs'
+                  : 'text-[var(--sys-on-surface-secondary)] hover:text-[var(--sys-on-surface)]'
               }`}
             >
-              {status}
+              {tab}
             </button>
           ))}
         </div>
       </div>
 
       {/* Results Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {filteredParticipants.map((participant) => (
-          <ParticipantCard key={participant.id} participant={participant} />
-        ))}
-        
-        {/* Recruitment Shortcut Card */}
-        <button className="rounded-[32px] border-2 border-dashed border-indigo-100 hover:border-brand-600 hover:bg-brand-50/20 transition-all duration-500 group min-h-[220px] flex items-center justify-center p-8 bg-slate-50/30">
-          <div className="text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-white border border-indigo-50 flex items-center justify-center mx-auto shadow-sm group-hover:scale-110 group-hover:border-brand-200 transition-all">
-              <span className="material-symbols-rounded text-slate-600 group-hover:text-brand-600 text-3xl">bolt</span>
-            </div>
-            <div>
-              <p className="font-display font-bold text-slate-900 text-lg group-hover:text-brand-600 transition-colors">Smart Recruit</p>
-              <p className="text-xs text-slate-500 font-medium max-w-[180px] mx-auto">Launch AI matching to find the perfect candidates</p>
-            </div>
-          </div>
-        </button>
-      </div>
+      {filteredParticipants.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {filteredParticipants.map((participant) => (
+            <ParticipantCard
+              key={participant.id}
+              participant={participant}
+              onInspect={setSelected}
+              onToggleShortlist={toggleParticipantShortlist}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-[var(--sys-radius-lg)] sys-surface-lowest py-16 px-6 text-center space-y-3">
+          <h2 className="text-base font-bold text-[var(--sys-on-surface)]">No participants found</h2>
+          <p className="text-sm text-[var(--sys-on-surface-secondary)]">
+            Adjust your search or add a new verified participant directly.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchTerm('');
+              setStatusFilter('All');
+            }}
+            className="mt-2 px-4 py-2 text-xs sys-btn-secondary cursor-pointer"
+          >
+            Reset Filters
+          </button>
+        </div>
+      )}
 
-      {filteredParticipants.length === 0 && (
-        <div className="py-20 text-center space-y-4">
-          <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-            <span className="material-symbols-rounded text-slate-300 text-4xl">search_off</span>
+      {/* Participant Inspector Slide-Over */}
+      {selected && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Participant profile"
+          className="fixed inset-0 z-50 flex justify-end"
+        >
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            onClick={() => setSelected(null)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-full max-w-md bg-[var(--sys-surface-lowest)] border-l border-[var(--sys-outline)] h-full p-6 overflow-y-auto flex flex-col justify-between gap-6">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[var(--sys-on-surface-tertiary)]">
+                  Participant Profile
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelected(null)}
+                  aria-label="Close profile"
+                  className="w-9 h-9 rounded-[var(--sys-radius-sm)] flex items-center justify-center text-[var(--sys-on-surface-secondary)] hover:bg-[var(--sys-surface-container)] cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <img
+                  src={selected.avatar}
+                  alt={selected.name}
+                  referrerPolicy="no-referrer"
+                  className="w-16 h-16 rounded-[var(--sys-radius-md)] object-cover border border-[var(--sys-outline-variant)]"
+                />
+                <div>
+                  <h2 className="text-xl font-bold text-[var(--sys-on-surface)]">{selected.name}</h2>
+                  <p className="text-sm text-[var(--sys-on-surface-secondary)]">
+                    {selected.role} · {selected.company}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 tabular-nums">
+                <div className="p-4 rounded-[var(--sys-radius-md)] bg-[var(--sys-surface-low)] border border-[var(--sys-outline-variant)]">
+                  <p className="text-xs text-[var(--sys-on-surface-tertiary)]">Reliability</p>
+                  <p className="text-xl font-bold font-mono text-[var(--sys-on-surface)] mt-1">
+                    {selected.reliability}%
+                  </p>
+                </div>
+                <div className="p-4 rounded-[var(--sys-radius-md)] bg-[var(--sys-surface-low)] border border-[var(--sys-outline-variant)]">
+                  <p className="text-xs text-[var(--sys-on-surface-tertiary)]">Completed</p>
+                  <p className="text-xl font-bold font-mono text-[var(--sys-on-surface)] mt-1">
+                    {selected.sessionsCompleted} sessions
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <p className="text-xs font-semibold text-[var(--sys-on-surface-tertiary)]">
+                  Researcher Notes
+                </p>
+                <p className="text-[var(--sys-on-surface-secondary)] leading-relaxed">
+                  {selected.recentNote}
+                </p>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <p className="text-xs font-semibold text-[var(--sys-on-surface-tertiary)]">
+                  Domain Expertise
+                </p>
+                <p className="text-[var(--sys-on-surface)]">{selected.tags.join(' · ')}</p>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-[var(--sys-outline-variant)] flex gap-2.5">
+              <Link
+                to="/dashboard/sessions"
+                onClick={() => setSelected(null)}
+                className="flex-1 min-h-[42px] px-4 py-2 text-xs sys-btn-primary flex items-center justify-center no-underline"
+              >
+                Schedule Interview
+              </Link>
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                className="min-h-[42px] px-4 py-2 text-xs sys-btn-secondary cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
-          <h3 className="text-xl font-bold text-slate-900">No participants found</h3>
-          <p className="text-slate-500">Try adjusting your search or filters to find what you're looking for.</p>
+        </div>
+      )}
+
+      {/* Add Participant Modal */}
+      {isAddOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-participant-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            onClick={() => setIsAddOpen(false)}
+            aria-hidden="true"
+          />
+          <form
+            onSubmit={handleAddParticipant}
+            className="relative z-10 w-full max-w-md rounded-[var(--sys-radius-lg)] bg-[var(--sys-surface-lowest)] border border-[var(--sys-outline)] p-6 space-y-4 shadow-xl"
+          >
+            <div className="flex items-center justify-between">
+              <h2 id="add-participant-title" className="text-lg font-bold text-[var(--sys-on-surface)]">
+                Add Participant
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsAddOpen(false)}
+                aria-label="Close modal"
+                className="w-8 h-8 rounded-[var(--sys-radius-sm)] flex items-center justify-center text-[var(--sys-on-surface-secondary)] hover:bg-[var(--sys-surface-container)] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                required
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Full name"
+                className="w-full h-10 px-3.5 text-sm sys-input"
+              />
+              <input
+                type="text"
+                required
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value)}
+                placeholder="Role (e.g. Principal Product Manager)"
+                className="w-full h-10 px-3.5 text-sm sys-input"
+              />
+              <input
+                type="text"
+                value={newCompany}
+                onChange={(e) => setNewCompany(e.target.value)}
+                placeholder="Company"
+                className="w-full h-10 px-3.5 text-sm sys-input"
+              />
+              <input
+                type="text"
+                value={newLocation}
+                onChange={(e) => setNewLocation(e.target.value)}
+                placeholder="Location"
+                className="w-full h-10 px-3.5 text-sm sys-input"
+              />
+              <input
+                type="text"
+                value={newTags}
+                onChange={(e) => setNewTags(e.target.value)}
+                placeholder="Expertise tags (comma separated)"
+                className="w-full h-10 px-3.5 text-sm sys-input"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsAddOpen(false)}
+                className="px-4 py-2 text-xs sys-btn-secondary cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="px-4 py-2 text-xs sys-btn-primary cursor-pointer">
+                Add to Panel
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

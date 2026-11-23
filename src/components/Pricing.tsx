@@ -1,110 +1,198 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Check } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
-const pricingTiers = [
+interface PricingTier {
+  id: string;
+  name: string;
+  audience: string;
+  monthlyPrice: number | null;
+  annualPrice: number | null;
+  summary: string;
+  limits: string[];
+  featured: boolean;
+  cta: string;
+}
+
+const PRICING_TIERS: PricingTier[] = [
   {
-    name: "Starter",
-    price: "£49",
-    period: "/mo",
-    description: "Perfect for independent consultants and solo practitioners.",
-    features: [
-      "Basic Observer Bias Detector",
-      "5 Hours /mo AI Synthesis",
-      "Standard Study Templates",
-      "Email Support",
-      "Unlimited Public Studies"
+    id: 'starter',
+    name: 'Starter',
+    audience: 'For solo researchers & consultants',
+    monthlyPrice: 49,
+    annualPrice: 39,
+    summary: 'Essential script auditing and asynchronous testing for independent practitioners.',
+    limits: [
+      'Up to 3 active studies simultaneously',
+      'Real-time Observer Bias Auditor on all scripts',
+      '5 hours / month automated transcript synthesis',
+      'Five-second & first-click test templates',
+      'Standard CSV & clip exports',
     ],
-    useCase: "Real Case: An independent UX consultant uses Starter to audit their research scripts for leading questions before presenting to early-stage startups.",
-    featured: false
+    featured: false,
+    cta: 'Start Free Workspace',
   },
   {
-    name: "Pro",
-    price: "£199",
-    period: "/mo",
-    description: "The core intelligence suite for high-velocity product teams.",
-    features: [
-      "Full Observer Bias Detector (Gemini 1.5 Pro)",
-      "Real-time Privacy Shield (PII Masking)",
-      "Unlimited AI Synthesis & Highlights",
-      "Priority Support (2h Slack)",
-      "Custom Thematic Models"
+    id: 'team',
+    name: 'Team',
+    audience: 'For high-velocity product squads',
+    monthlyPrice: 199,
+    annualPrice: 159,
+    summary: 'Complete moderated & unmoderated suite with Privacy Shield and shared synthesis.',
+    limits: [
+      'Unlimited active studies & 10 editor seats',
+      'In-buffer Privacy Shield (face & document masking)',
+      '40 hours / month multimodal synthesis & reels',
+      'Participant panel CRM & recruitment campaigns',
+      'Direct insight-to-task handoff & priority support',
     ],
-    useCase: "Real Case: A FinTech startup uses Pro to conduct regulated user testing sessions while the Privacy Shield automatically masks sensitive credit card data in real-time.",
-    featured: true
+    featured: true,
+    cta: 'Start 14-Day Team Trial',
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    description: "Advanced agentic orchestration for global organisations.",
-    features: [
-      "Custom Antigravity Orchestrator Workflows",
-      "Data Sovereignty (London/EU Regions)",
-      "On-premise LLM Deployment Options",
-      "SSO & Advanced Governance",
-      "Dedicated Agentic AI Specialist"
+    id: 'enterprise',
+    name: 'Enterprise',
+    audience: 'For regulated & global organizations',
+    monthlyPrice: null,
+    annualPrice: null,
+    summary: 'Sovereign data residency, SSO enforcement, and custom governance controls.',
+    limits: [
+      'Unlimited seats, workspaces & synthesis hours',
+      'EU, UK, or US dedicated data residency',
+      'SAML SSO, SCIM provisioning & audit logs',
+      'HIPAA BAA & custom retention policies',
+      'Dedicated Research Ops onboarding partner',
     ],
-    useCase: "Real Case: A global healthcare provider uses Enterprise to orchestrate cross-continental research while maintaining strict HIPAA compliance via localized storage.",
-    featured: false
-  }
+    featured: false,
+    cta: 'Open Enterprise Demo',
+  },
 ];
 
 const Pricing: React.FC = () => {
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('annual');
+  const { currentUser, loginAsDemo } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSelectPlan = async () => {
+    if (!currentUser) {
+      await loginAsDemo();
+    }
+    navigate('/dashboard');
+  };
+
   return (
-    <section id="pricing" className="py-20 md:py-36 bg-white relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 md:px-10 animate-fade-in">
-        <div className="text-center mb-16 md:mb-20">
-          <h2 className="text-4xl md:text-6xl mb-6 font-display font-bold text-slate-900 tracking-tight leading-tight">
-            Predictable Pricing for <span className="text-gradient">Agentic Workflows</span>
-          </h2>
-          <p className="text-lg md:text-xl text-slate-500 max-w-[800px] mx-auto leading-relaxed px-4">
-            Whether you're a solo researcher or a global enterprise, <span className="pr-0.5">LyndaPlus</span> scales with your need for speed and security.
-          </p>
+    <section id="pricing" className="py-16 md:py-24 bg-[var(--sys-surface-low)]">
+      <div className="max-w-7xl mx-auto px-6 md:px-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div className="max-w-xl">
+            <p className="text-xs font-medium text-[var(--sys-primary)] mb-3">
+              05. Transparent Plans
+            </p>
+            <h2 className="text-3xl md:text-4xl font-bold text-[var(--sys-on-surface)] leading-tight">
+              Predictable pricing with clear study limits.
+            </h2>
+          </div>
+
+          <div
+            role="group"
+            aria-label="Billing frequency"
+            className="inline-flex items-center gap-1 p-1 rounded-[var(--sys-radius-md)] bg-[var(--sys-surface-container)] border border-[var(--sys-outline-variant)] self-start md:self-auto"
+          >
+            <button
+              type="button"
+              onClick={() => setBilling('monthly')}
+              className={`min-h-[38px] px-4 py-1.5 text-xs font-semibold rounded-[var(--sys-radius-sm)] transition-colors whitespace-nowrap cursor-pointer ${
+                billing === 'monthly'
+                  ? 'bg-[var(--sys-surface-lowest)] text-[var(--sys-on-surface)] shadow-xs'
+                  : 'text-[var(--sys-on-surface-secondary)] hover:text-[var(--sys-on-surface)]'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setBilling('annual')}
+              className={`min-h-[38px] px-4 py-1.5 text-xs font-semibold rounded-[var(--sys-radius-sm)] transition-colors whitespace-nowrap cursor-pointer ${
+                billing === 'annual'
+                  ? 'bg-[var(--sys-surface-lowest)] text-[var(--sys-on-surface)] shadow-xs'
+                  : 'text-[var(--sys-on-surface-secondary)] hover:text-[var(--sys-on-surface)]'
+              }`}
+            >
+              Annual (Save 20%)
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10 items-stretch">
-          {pricingTiers.map((tier, index) => (
-            <div
-              key={index}
-              className={`flex flex-col p-8 md:p-14 rounded-[32px] md:rounded-[40px] transition-all duration-500 relative overflow-hidden ${tier.featured
-                ? 'bg-white border-2 border-brand-500 shadow-2xl lg:scale-[1.05] z-10'
-                : 'bg-slate-50/50 border border-indigo-50/50 hover:bg-white hover:shadow-premium'
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          {PRICING_TIERS.map((tier) => {
+            const displayPrice =
+              tier.monthlyPrice === null
+                ? 'Custom'
+                : `£${billing === 'annual' ? tier.annualPrice : tier.monthlyPrice}`;
+
+            return (
+              <div
+                key={tier.id}
+                className={`rounded-[var(--sys-radius-lg)] p-6 md:p-8 flex flex-col justify-between bg-[var(--sys-surface-lowest)] border ${
+                  tier.featured
+                    ? 'border-[var(--sys-primary)] ring-1 ring-[var(--sys-primary)]/20'
+                    : 'border-[var(--sys-outline-variant)]'
                 }`}
-            >
-              {tier.featured && (
-                <div className="absolute top-6 right-6 md:top-8 md:right-8 bg-brand-600 text-white px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.2em] shadow-lg animate-pulse">
-                  MOST POPULAR
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <h3 className="text-lg font-bold text-[var(--sys-on-surface)]">{tier.name}</h3>
+                    {tier.featured && (
+                      <span className="text-xs font-semibold text-[var(--sys-primary)]">
+                        Recommended
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[var(--sys-on-surface-tertiary)] mb-6">
+                    {tier.audience}
+                  </p>
+
+                  <div className="flex items-baseline gap-1.5 mb-4 tabular-nums">
+                    <span className="text-4xl font-bold font-mono text-[var(--sys-on-surface)]">
+                      {displayPrice}
+                    </span>
+                    {tier.monthlyPrice !== null && (
+                      <span className="text-xs text-[var(--sys-on-surface-tertiary)]">
+                        / month{billing === 'annual' ? ', billed annually' : ''}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-[var(--sys-on-surface-secondary)] leading-relaxed mb-6 pb-6 border-b border-[var(--sys-outline-variant)]">
+                    {tier.summary}
+                  </p>
+
+                  <ul className="space-y-3 mb-8">
+                    {tier.limits.map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-start gap-2.5 text-sm text-[var(--sys-on-surface)]"
+                      >
+                        <Check className="w-4 h-4 text-[var(--sys-primary)] shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              )}
 
-              <div className="text-xs font-bold tracking-[0.2em] text-brand-600 mb-6 uppercase">{tier.name}</div>
-
-              <div className="text-5xl md:text-6xl font-bold mb-4 font-display text-slate-950 tracking-tighter">
-                {tier.price}<span className="text-lg text-slate-500 font-medium tracking-normal ml-1">{tier.period}</span>
+                <button
+                  type="button"
+                  onClick={handleSelectPlan}
+                  className={`w-full min-h-[44px] px-5 py-3 text-sm whitespace-nowrap cursor-pointer ${
+                    tier.featured ? 'sys-btn-primary' : 'sys-btn-secondary'
+                  }`}
+                >
+                  {tier.cta}
+                </button>
               </div>
-
-              <div className="text-slate-500 mb-10 min-h-[4rem] text-[15px] leading-relaxed font-medium">{tier.description}</div>
-
-              <ul className="space-y-4 md:space-y-5 mb-12">
-                {tier.features.map((feature, fIndex) => (
-                  <li key={fIndex} className="flex items-start gap-4 text-[14px] text-slate-600 font-medium">
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-[10px] font-bold">✓</span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-auto pt-8 border-t border-indigo-50 text-[13px] leading-relaxed text-slate-600 italic">
-                <strong className="not-italic text-slate-900 font-bold block mb-2 uppercase tracking-widest text-[10px]">Actual Case Study</strong> {tier.useCase}
-              </div>
-
-              <button className={`mt-10 md:mt-12 w-full py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${tier.featured
-                ? 'bg-slate-950 text-white shadow-lg hover:shadow-brand-500/25 hover:bg-brand-600 active:scale-[0.98]'
-                : 'bg-white border border-indigo-100 text-slate-900 hover:border-brand-600 hover:text-brand-600 hover:shadow-premium active:scale-[0.98]'
-                }`}>
-                {tier.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -1,204 +1,269 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowRight, CheckCircle2, RotateCcw, X } from 'lucide-react';
+import { ASSETS } from '../data/mockData';
 
-interface Section {
+interface StudySection {
   id: string;
   type: 'five-second' | 'first-click' | 'survey';
   title: string;
-  config: any;
+  duration?: number;
+  prompt: string;
+  image?: string;
 }
 
+const PREVIEW_SECTIONS: StudySection[] = [
+  {
+    id: '1',
+    type: 'five-second',
+    title: 'Initial Impression (Five-Second Test)',
+    duration: 5,
+    prompt: 'What stood out most about the checkout screen you just viewed?',
+    image: ASSETS.checkoutUi,
+  },
+  {
+    id: '2',
+    type: 'first-click',
+    title: 'Navigation Task (First-Click Test)',
+    prompt: 'Click where you would confirm your subscription total and complete payment.',
+    image: ASSETS.checkoutUi,
+  },
+  {
+    id: '3',
+    type: 'survey',
+    title: 'Open Reflection',
+    prompt: 'Walk us through anything that felt unclear or unexpected during this test.',
+  },
+];
+
 const StudyPreview: React.FC = () => {
-  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
-  const [showImage, setShowImage] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [sectionIdx, setSectionIdx] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(5);
+  const [recallText, setRecallText] = useState('');
+  const [surveyText, setSurveyText] = useState('');
+  const [clickCoords, setClickCoords] = useState<{ xPct: number; yPct: number } | null>(null);
   const [isFinished, setIsFinished] = useState(false);
+
   const navigate = useNavigate();
+  const current = PREVIEW_SECTIONS[sectionIdx];
+  const showStimulus = current.type === 'five-second' && timeLeft > 0;
 
-  // Mock data
-  const mockSections: Section[] = [
-    { 
-      id: '1', 
-      type: 'five-second', 
-      title: 'Initial Impression', 
-      config: { 
-        duration: 5, 
-        instructions: 'What was the main value proposition of this page?',
-        image: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?auto=format&fit=crop&q=80&w=1000' 
-      } 
-    },
-    { 
-      id: '2', 
-      type: 'first-click', 
-      title: 'Navigation Task', 
-      config: { 
-        task: 'Where would you click to find our pricing plans?',
-        image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1000' 
-      } 
-    },
-    { 
-      id: '3', 
-      type: 'survey', 
-      title: 'Final Feedback', 
-      config: { 
-        question: 'Any other comments on the clarity of the interface?' 
-      } 
-    }
-  ];
-
-  const sections = mockSections;
-  const currentSection = sections[currentSectionIndex];
-
-  // Start the test when the section changes
   useEffect(() => {
-    if (currentSection?.type === 'five-second') {
-      setShowImage(true);
-      setTimeLeft(currentSection.config.duration);
-    } else {
-      setShowImage(false);
-      setTimeLeft(0);
-    }
-  }, [currentSectionIndex]); // Only trigger on index change
-
-  // Separate timer logic that doesn't trigger the above effect
-  useEffect(() => {
-    let timer: number | undefined;
-    if (showImage && timeLeft > 0) {
-      timer = window.setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && showImage) {
-      setShowImage(false);
-    }
-    return () => clearInterval(timer);
-  }, [showImage, timeLeft]);
+    if (!showStimulus) return;
+    const timer = window.setTimeout(() => {
+      setTimeLeft((t) => Math.max(0, t - 1));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [showStimulus, timeLeft]);
 
   const handleNext = useCallback(() => {
-    if (currentSectionIndex < sections.length - 1) {
-      setCurrentSectionIndex(prev => prev + 1);
+    if (sectionIdx < PREVIEW_SECTIONS.length - 1) {
+      const nextIdx = sectionIdx + 1;
+      const nextSection = PREVIEW_SECTIONS[nextIdx];
+      setSectionIdx(nextIdx);
+      setTimeLeft(nextSection.type === 'five-second' ? nextSection.duration || 5 : 0);
     } else {
       setIsFinished(true);
     }
-  }, [currentSectionIndex, sections.length]);
+  }, [sectionIdx]);
 
-  const handleFirstClick = (e: React.MouseEvent) => {
-    if (currentSection.type !== 'first-click') return;
+  const handleFirstClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    console.log(`First Click Captured: ${x}, ${y}`);
-    handleNext();
+    const xPct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+    const yPct = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+    setClickCoords({ xPct, yPct });
   };
 
   if (isFinished) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <div className="bg-white rounded-[48px] p-12 text-center max-w-md shadow-2xl animate-in zoom-in duration-500">
-           <div className="w-20 h-20 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-8">
-             <span className="material-symbols-rounded text-4xl">check_circle</span>
-           </div>
-           <h2 className="text-3xl font-bold text-slate-900 mb-4 font-display">Study Complete</h2>
-           <p className="text-slate-500 font-medium leading-relaxed mb-10">
-             Thank you for your participation. Your insights are helping us build better experiences.
-           </p>
-           <button onClick={() => navigate('/dashboard')} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all">
-             Back to Dashboard
-           </button>
+      <div className="max-w-lg mx-auto py-12">
+        <div className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-8 text-center space-y-5">
+          <CheckCircle2
+            className="w-10 h-10 mx-auto"
+            style={{ color: 'var(--sys-success-fg)' }}
+          />
+          <h1 className="text-2xl font-bold text-[var(--sys-on-surface)]">Study Preview Complete</h1>
+          <p className="text-sm text-[var(--sys-on-surface-secondary)] leading-relaxed">
+            Your simulated participant responses
+            {clickCoords ? ` (including First-Click at ${clickCoords.xPct}%, ${clickCoords.yPct}%)` : ''} have been verified.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setSectionIdx(0);
+                setTimeLeft(PREVIEW_SECTIONS[0].duration || 5);
+                setRecallText('');
+                setSurveyText('');
+                setClickCoords(null);
+                setIsFinished(false);
+              }}
+              className="inline-flex items-center gap-2 min-h-[42px] px-4 py-2 text-xs sys-btn-secondary cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Run Again</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="inline-flex items-center gap-2 min-h-[42px] px-5 py-2 text-xs sys-btn-primary cursor-pointer"
+            >
+              <span>Return to Overview</span>
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center p-6 lg:p-12 font-sans">
-      {/* Progress Header */}
-      <div className="w-full max-w-5xl flex justify-between items-center mb-12">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-slate-600">
-            {currentSectionIndex + 1}
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-slate-900 font-display italic">{currentSection.title}</h4>
-            <div className="flex gap-1 mt-1">
-              {sections.map((_, i) => (
-                <div key={i} className={`h-1 rounded-full transition-all ${i === currentSectionIndex ? 'w-8 bg-brand-600' : 'w-2 bg-slate-200'}`} />
-              ))}
-            </div>
-          </div>
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Runner Progress Header */}
+      <div className="flex items-center justify-between gap-4 pb-4 border-b border-[var(--sys-outline-variant)]">
+        <div className="space-y-1">
+          <p className="text-xs font-mono text-[var(--sys-on-surface-tertiary)] tabular-nums">
+            Step {sectionIdx + 1} of {PREVIEW_SECTIONS.length} · Participant Preview Mode
+          </p>
+          <h1 className="text-lg font-bold text-[var(--sys-on-surface)]">{current.title}</h1>
         </div>
-        <button onClick={() => navigate('/dashboard/create')} className="text-[10px] font-black text-slate-600 uppercase tracking-widest hover:text-red-500 transition-all">
-          Exit Preview
+
+        <button
+          type="button"
+          onClick={() => navigate('/dashboard/create')}
+          className="inline-flex items-center gap-1.5 min-h-[38px] px-3.5 py-1.5 text-xs sys-btn-secondary cursor-pointer"
+        >
+          <X className="w-3.5 h-3.5" />
+          <span>Exit Preview</span>
         </button>
       </div>
 
-      <main className="w-full max-w-5xl flex-1 flex flex-col items-center justify-center">
-        {currentSection.type === 'five-second' && (
-          <div className="w-full text-center">
-            {showImage ? (
-              <div className="space-y-8 animate-in fade-in duration-300">
-                 <div className="relative inline-block rounded-[40px] overflow-hidden shadow-2xl border-4 border-white">
-                   <img src={currentSection.config.image} alt="Test" className="max-h-[60vh] object-contain" />
-                   <div className="absolute top-6 right-6 w-14 h-14 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white font-black text-xl border border-white/20">
-                     {timeLeft}
-                   </div>
-                 </div>
-                 <p className="text-2xl font-bold text-slate-600 animate-pulse">Observation in progress...</p>
+      {/* Five-Second Block */}
+      {current.type === 'five-second' && (
+        <div className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-6 md:p-8 space-y-6">
+          {showStimulus ? (
+            <div className="space-y-4 text-center">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[var(--sys-on-surface-secondary)]">
+                  Observe the interface carefully
+                </span>
+                <span className="font-mono font-bold text-[var(--sys-primary)] tabular-nums">
+                  {timeLeft}s remaining
+                </span>
               </div>
-            ) : (
-              <div className="max-w-xl mx-auto space-y-8 animate-in slide-in-from-bottom-8 duration-500">
-                <h2 className="text-4xl font-bold text-slate-900 font-display">Recall Phase</h2>
-                <p className="text-xl text-slate-500 font-medium leading-relaxed">{currentSection.config.instructions}</p>
-                <textarea 
-                  autoFocus 
-                  className="w-full bg-white border-2 border-slate-100 rounded-[32px] p-8 text-lg font-medium focus:border-brand-600 outline-none shadow-sm transition-all"
-                  rows={4} 
-                  placeholder="Type what you remember..."
+              <div className="rounded-[var(--sys-radius-md)] overflow-hidden border border-[var(--sys-outline-variant)] aspect-video bg-[var(--sys-surface-low)]">
+                <img
+                  src={current.image}
+                  alt="Five-second visual stimulus"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
                 />
-                <button onClick={handleNext} className="bg-brand-600 text-white px-12 py-4 rounded-2xl font-bold shadow-xl shadow-brand-200 hover:bg-brand-700 transition-all scale-110 active:scale-95">
-                  Continue Research
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-xl mx-auto space-y-5 py-4">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-[var(--sys-primary)]">Recall Phase</p>
+                <h2 className="text-xl font-bold text-[var(--sys-on-surface)]">{current.prompt}</h2>
+              </div>
+              <textarea
+                rows={4}
+                value={recallText}
+                onChange={(e) => setRecallText(e.target.value)}
+                placeholder="Write what you remember..."
+                className="w-full p-4 text-sm sys-input resize-none"
+              />
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setTimeLeft(5)}
+                  className="text-xs font-semibold text-[var(--sys-on-surface-secondary)] hover:text-[var(--sys-on-surface)] cursor-pointer"
+                >
+                  Replay 5s stimulus
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="inline-flex items-center gap-2 min-h-[42px] px-5 py-2 text-xs sys-btn-primary cursor-pointer"
+                >
+                  <span>Next Task</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* First-Click Block */}
+      {current.type === 'first-click' && (
+        <div className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-6 md:p-8 space-y-5">
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold text-[var(--sys-on-surface)]">{current.prompt}</h2>
+            <p className="text-xs text-[var(--sys-on-surface-secondary)]">
+              Click directly on the prototype below to record your first-click coordinate.
+            </p>
+          </div>
+
+          <div
+            onClick={handleFirstClick}
+            className="relative rounded-[var(--sys-radius-md)] overflow-hidden border border-[var(--sys-outline)] aspect-video cursor-crosshair bg-[var(--sys-surface-low)]"
+          >
+            <img
+              src={current.image}
+              alt="First-click task target"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover select-none pointer-events-none"
+            />
+            {clickCoords && (
+              <div
+                style={{ left: `${clickCoords.xPct}%`, top: `${clickCoords.yPct}%` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 border-white bg-[var(--sys-primary)] shadow-md"
+              />
             )}
           </div>
-        )}
 
-        {currentSection.type === 'first-click' && (
-          <div className="w-full space-y-10 animate-in fade-in duration-700">
-            <div className="text-center space-y-4 max-w-2xl mx-auto">
-              <span className="px-4 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black uppercase tracking-widest">First Click Task</span>
-              <h2 className="text-4xl font-bold text-slate-900 font-display leading-tight">{currentSection.config.task}</h2>
-              <p className="text-slate-600 font-medium italic">Click the area on the image where you would perform this action.</p>
-            </div>
-            
-            <div 
-              onClick={handleFirstClick}
-              className="relative rounded-[48px] overflow-hidden shadow-2xl cursor-pointer group border-8 border-white ring-1 ring-slate-200 mx-auto max-w-4xl"
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-xs font-mono text-[var(--sys-on-surface-tertiary)] tabular-nums">
+              {clickCoords
+                ? `Recorded click at X: ${clickCoords.xPct}%, Y: ${clickCoords.yPct}%`
+                : 'Awaiting click on image...'}
+            </span>
+            <button
+              type="button"
+              disabled={!clickCoords}
+              onClick={handleNext}
+              className="inline-flex items-center gap-2 min-h-[42px] px-5 py-2 text-xs sys-btn-primary cursor-pointer disabled:opacity-40"
             >
-              <img src={currentSection.config.image} alt="Target" className="w-full select-none pointer-events-none" />
-              <div className="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/5 transition-colors" />
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="w-20 h-20 rounded-full border-4 border-emerald-500 animate-ping opacity-20" />
-              </div>
-            </div>
+              <span>Continue</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {currentSection.type === 'survey' && (
-          <div className="max-w-2xl w-full space-y-10 animate-in slide-in-from-bottom-8 duration-500 text-center">
-             <h2 className="text-5xl font-bold text-slate-900 font-display leading-tight">{currentSection.config.question}</h2>
-             <input 
-               autoFocus
-               className="w-full bg-transparent border-b-4 border-slate-200 py-6 text-2xl font-medium focus:border-brand-600 outline-none transition-all placeholder:text-slate-200" 
-               placeholder="Write your response here..." 
-             />
-             <div className="pt-10">
-               <button onClick={handleNext} className="bg-slate-900 text-white px-16 py-5 rounded-[24px] font-bold shadow-2xl hover:bg-slate-800 transition-all text-lg flex items-center gap-3 mx-auto">
-                 Finish Study <span className="material-symbols-rounded">rocket_launch</span>
-               </button>
-             </div>
+      {/* Open Survey Block */}
+      {current.type === 'survey' && (
+        <div className="rounded-[var(--sys-radius-lg)] sys-surface-lowest p-6 md:p-8 space-y-5">
+          <h2 className="text-xl font-bold text-[var(--sys-on-surface)]">{current.prompt}</h2>
+          <textarea
+            rows={4}
+            value={surveyText}
+            onChange={(e) => setSurveyText(e.target.value)}
+            placeholder="Share your feedback..."
+            className="w-full p-4 text-sm sys-input resize-none"
+          />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleNext}
+              className="inline-flex items-center gap-2 min-h-[42px] px-5 py-2 text-xs sys-btn-primary cursor-pointer"
+            >
+              <span>Submit Study Preview</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { X, Check, CreditCard } from 'lucide-react';
 
 interface BuyCreditsModalProps {
   isOpen: boolean;
@@ -6,61 +7,118 @@ interface BuyCreditsModalProps {
   onPurchase: (amount: number) => void;
 }
 
+const CREDIT_PACKS = [
+  {
+    id: 'quick',
+    amount: 5,
+    price: '£19',
+    rate: '£3.80 / hr',
+    label: 'Single Study Pack',
+    desc: 'Covers 5 hours of live recording & transcript synthesis.',
+    featured: false,
+  },
+  {
+    id: 'team',
+    amount: 20,
+    price: '£69',
+    rate: '£3.45 / hr',
+    label: 'Sprint Research Pack',
+    desc: 'Ideal for weekly continuous discovery and highlight reels.',
+    featured: true,
+  },
+  {
+    id: 'scale',
+    amount: 100,
+    price: '£299',
+    rate: '£2.99 / hr',
+    label: 'Quarterly Scale Pack',
+    desc: 'Best value for multi-squad research operations.',
+    featured: false,
+  },
+];
+
 const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({ isOpen, onClose, onPurchase }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  const options = [
-    { id: 1, amount: 5, price: "£19", label: "Quick Top-up", desc: "Best for single sessions." },
-    { id: 2, amount: 20, price: "£69", label: "Researcher Pack", desc: "Popular for week-long studies.", featured: true },
-    { id: 3, amount: 100, price: "£299", label: "Enterprise Scale", desc: "High-volume multimodal analysis." }
-  ];
-
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6 animate-fade-in">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose} />
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="credits-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+    >
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-xs"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      <div className="relative w-full max-w-2xl bg-white rounded-[40px] shadow-2xl overflow-hidden border border-white/20">
-        <div className="p-10 md:p-14">
-          <div className="flex justify-between items-start mb-8 text-slate-900 font-display">
+      <div className="relative w-full max-w-2xl rounded-[var(--sys-radius-lg)] bg-[var(--sys-surface-lowest)] border border-[var(--sys-outline)] shadow-xl overflow-hidden">
+        <div className="p-6 md:p-8 space-y-6">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight mb-2 uppercase text-brand-600">Refill AI Intelligence</h2>
-              <p className="text-slate-500 font-medium tracking-tight">Purchase additional Gemini 1.5 Pro synthesis hours for your workspace.</p>
+              <h2
+                id="credits-modal-title"
+                className="text-xl font-bold text-[var(--sys-on-surface)]"
+              >
+                Add Synthesis Hours
+              </h2>
+              <p className="text-sm text-[var(--sys-on-surface-secondary)] mt-1">
+                Credits apply immediately to transcription, Privacy Shield redaction, and thematic synthesis.
+              </p>
             </div>
-            <button onClick={onClose} className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
-              <span className="material-symbols-rounded text-slate-400">close</span>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close modal"
+              className="w-10 h-10 rounded-[var(--sys-radius-sm)] flex items-center justify-center text-[var(--sys-on-surface-secondary)] hover:bg-[var(--sys-surface-container)] cursor-pointer"
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {options.map((option) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 tabular-nums">
+            {CREDIT_PACKS.map((pack) => (
               <button
-                key={option.id}
-                onClick={() => onPurchase(option.amount)}
-                className={`flex flex-col p-6 rounded-3xl text-left transition-all group ${option.featured
-                  ? 'bg-brand-600 text-white shadow-xl shadow-brand-500/20 ring-4 ring-brand-500/10 -translate-y-1'
-                  : 'bg-slate-50 border border-slate-100 text-slate-800 hover:border-brand-500 hover:bg-white'
-                  }`}
+                key={pack.id}
+                type="button"
+                onClick={() => onPurchase(pack.amount)}
+                className={`text-left p-5 rounded-[var(--sys-radius-md)] border transition-colors flex flex-col justify-between gap-4 cursor-pointer ${
+                  pack.featured
+                    ? 'bg-[var(--sys-primary-container)] border-[var(--sys-primary)] text-[var(--sys-on-primary-container)]'
+                    : 'bg-[var(--sys-surface-low)] border-[var(--sys-outline-variant)] text-[var(--sys-on-surface)] hover:border-[var(--sys-outline)]'
+                }`}
               >
-                <span className={`text-[10px] font-bold uppercase tracking-widest mb-4 ${option.featured ? 'text-brand-100' : 'text-brand-600'}`}>
-                  {option.label}
-                </span>
-                <div className="text-3xl font-bold mb-1">+{option.amount}h</div>
-                <div className={`text-sm font-bold mb-4 opacity-80 ${option.featured ? 'text-white' : 'text-slate-500'}`}>{option.price}</div>
-                <p className={`text-[11px] leading-tight font-medium ${option.featured ? 'text-brand-50' : 'text-slate-400'}`}>
-                  {option.desc}
-                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold">{pack.label}</span>
+                    {pack.featured && <Check className="w-4 h-4 shrink-0" />}
+                  </div>
+                  <p className="text-2xl font-bold font-mono">+{pack.amount} hrs</p>
+                  <p className="text-xs opacity-80">
+                    {pack.price} · {pack.rate}
+                  </p>
+                </div>
+                <p className="text-xs leading-relaxed opacity-85">{pack.desc}</p>
               </button>
             ))}
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
-                <span className="material-symbols-rounded text-sm">payments</span>
-              </div>
-              <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Secured by Stripe Enterprise</p>
-            </div>
-            <p className="text-[11px] font-medium text-slate-400 font-medium tracking-tight">Purchase reflects instantly on your account.</p>
+          <div className="pt-4 border-t border-[var(--sys-outline-variant)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[var(--sys-on-surface-tertiary)]">
+            <span className="inline-flex items-center gap-2 text-[var(--sys-on-surface-secondary)] font-medium">
+              <CreditCard className="w-4 h-4" />
+              Unused hours roll over across billing cycles
+            </span>
+            <span>Instant workspace provisioning</span>
           </div>
         </div>
       </div>
